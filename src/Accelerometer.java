@@ -1,4 +1,4 @@
 
-public class Accelerometer {
+public class Accelerometer extends Capteur{
 
 }

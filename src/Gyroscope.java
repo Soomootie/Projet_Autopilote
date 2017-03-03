@@ -1,4 +1,4 @@
 
-public class Gyroscope {
+public class Gyroscope extends Capteur {
 
 }
