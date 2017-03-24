@@ -8,6 +8,10 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 
 public class Bus {
+		private int []tab_client;
+		public void registerAccept(){
+			
+		}
 		public static void main(String[] args) {
 			ServerSocket socketserver  ;
 			Socket socketduserveur ;
@@ -20,13 +24,13 @@ public class Bus {
 					JsonObject jsonObj = jsonread.readObject();
 					jsonread.close();
 					in.close();
-					Accelerometer acc = new Accelerometer();
-					acc.setSender_class(jsonObj.getString("sender_class"));
-					acc.setSender_name(jsonObj.getString("sender_name"));
-					acc.setX(jsonObj.getInt("x"));
-					acc.setY(jsonObj.getInt("y"));
-					acc.setZ(jsonObj.getInt("z"));
-					System.out.println(acc);
+//					Accelerometer acc = new Accelerometer();
+//					acc.setSender_class(jsonObj.getString("sender_class"));
+//					acc.setSender_name(jsonObj.getString("sender_name"));
+//					acc.setX(jsonObj.getInt("x"));
+//					acc.setY(jsonObj.getInt("y"));
+//					acc.setZ(jsonObj.getInt("z"));
+//					System.out.println(acc);
 				}catch (IOException e) {
 					e.printStackTrace();
 				}
