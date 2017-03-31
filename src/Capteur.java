@@ -9,12 +9,7 @@ public class Capteur {
 	String sender_class;
 	String sender_name;
 	int sender_id;
-	
-	public Capteur(){
 		
-	}
-	
-	
 	public Capteur(String sender_class, String sender_name) {
 		this.sender_class = sender_class;
 		this.sender_name = sender_name;
@@ -61,8 +56,7 @@ public class Capteur {
 			JsonReader jsonread = Json.createReader(in);
 			JsonObject jsonObjrd = jsonread.readObject();
 			this.setSender_id(jsonObjrd.getInt("id"));
-			// ici ne pas faire de print
-			System.out.println(jsonObjrd.getString("ack"));
+			System.out.println(jsonObjrd.getString("resp"));
 			jsonread.close();
 			socket.close();
 
@@ -75,9 +69,40 @@ public class Capteur {
 	}
 	
 	public int deregisterSender(int sender_id){
+		JsonObject jsonObj = Json.createObjectBuilder()
+				.add("sender_id", sender_id)
+				.build();
+		Socket socket;
+		try {
+			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			OutputStream out = socket.getOutputStream();
+			JsonWriter jswr = Json.createWriter(out);
+			jswr.writeObject(jsonObj);
+			InputStream in = socket.getInputStream();
+			JsonReader jsonread = Json.createReader(in);
+			JsonObject jsonObjrd = jsonread.readObject();
+			String res = jsonObjrd.getString("resp");
+			jsonread.close();
+			socket.close();
+			if (res == "ok"){
+				return 1;	
+			}
+			else{
+				System.out.println("Error : " + jsonObjrd.getString("error_id"));
+				return 0;
+				
+			}	
+
+		}catch (UnknownHostException e) {
+			e.printStackTrace();
+			return -1;
+		}catch (IOException e) {
+			e.printStackTrace();
+			return -1;
+		}
 		
-		return 0;
 	}
+		
 
 	@Override
 	public String toString() {
