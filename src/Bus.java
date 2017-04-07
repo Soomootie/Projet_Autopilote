@@ -16,13 +16,14 @@ import javax.json.JsonWriter;
 public class Bus {
 
 	Collection<Capteur> list_capteur; // liste de capteurs presents dans le bus
+	Collection<JsonObject> list_jsonObject; // liste de message json presents dans le bus
 	private int id = 0; // id unique par capteur
 
-	public void registerAccept() {
+	public void checkIn() { // enregistrement cote bus
 		list_capteur = new ArrayList<Capteur>();
 		JsonObject ack = Json.createObjectBuilder()
 				.add("type", "register")
-				.add("resp", "ok")
+				.add("ack", Json.createObjectBuilder().add("resp", "ok"))
 				.build();
 		Socket socket;
 		try {
@@ -53,22 +54,29 @@ public class Bus {
 
 	}
 
-	public void deregisterAccept() {
+	public void checkOut() { // desenregistrement cote bus
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			socket = new Socket(InetAddress.getLocalHost(), 2002); // changer numero de port
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
-			
 			InputStream in = socket.getInputStream();
 			JsonReader jsonread = Json.createReader(in);
 			JsonObject jsonObjrd = jsonread.readObject();
 			int sender_id = jsonObjrd.getInt("sender_id");
 			if (list_capteur.remove(sender_id)){
-				System.out.println();
+				JsonObject reponse = Json.createObjectBuilder()
+						.add("type", "deregister")
+						.add("ack", Json.createObjectBuilder().add("resp", 0))
+						.build();
+				jswr.writeObject(reponse);
 			}
 			else {
-				/* à finir*/
+				JsonObject reponse = Json.createObjectBuilder()
+						.add("type", "deregister")
+						.add("ack", Json.createObjectBuilder().add("resp",428))
+						.build();
+				jswr.writeObject(reponse);
 			}
 		}
 		
@@ -78,14 +86,44 @@ public class Bus {
 			e.printStackTrace();
 		}
 		
-		JsonObject reponse = Json.createObjectBuilder() // objet json correspondant à la repponse 
-				.add("type", "deregister")
-				.add("ack", Json.createObjectBuilder().add("resp", "ok"))
-				.build();
+	}
+
+
+	public void ackSend() { // ack send 
+		Socket socket;
+		try {
+			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			OutputStream out = socket.getOutputStream();
+			JsonWriter jswr = Json.createWriter(out);
+			InputStream in = socket.getInputStream();
+			JsonReader jsonread = Json.createReader(in);
+			JsonObject jsonObjrd = jsonread.readObject();
+			if (list_capteur.contains(jsonObjrd.getInt("sender_id"))){ // verification existance de l'id
+				list_jsonObject.add(jsonObjrd);
+				JsonObject  reponse = Json.createObjectBuilder()
+						.add("type", "send")
+						.add("ack", Json.createObjectBuilder().add("resp", 0))
+						.build();
+				jswr.writeObject(reponse);
+			} else {
+				JsonObject reponse = Json.createObjectBuilder()
+						.add("type", "send")
+						.add("ack", Json.createObjectBuilder().add("resp",438))
+						.build();
+				jswr.writeObject(reponse);
+			}
+		}
 		
+		catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 	}
 
+	
+	
 	public static void main(String[] args) {
 		ServerSocket socketserver;
 		Socket socketduserveur;

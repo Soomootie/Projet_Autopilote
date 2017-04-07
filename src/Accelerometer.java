@@ -1,9 +1,14 @@
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.JsonWriter;
 
 
 public class Accelerometer extends Capteur{
@@ -44,21 +49,71 @@ public class Accelerometer extends Capteur{
 		this.z = z;
 	}
 	
-	public static void main(String[] args) {
+	
+	public void send(int sender_id,JsonObject contents){
+		/* msg {
+    "type" : "send",
+    "sender_id" : 2,
+    "contents" : {
+            "x" : 1.25,
+            "y" : 1.47,
+            "z" : 0
+    }
+}
+*/
+		Socket socket;
+		try {
+			
+			JsonObject msg = Json.createObjectBuilder()
+					.add("type","send")
+					.add("sender_id", sender_id)
+					.add("contents",contents)
+					.build();
+			
+			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			OutputStream out = socket.getOutputStream();
+			JsonWriter jswr = Json.createWriter(out);
+			jswr.writeObject(msg);
+			InputStream in = socket.getInputStream();
+			JsonReader jsonread = Json.createReader(in);
+			JsonObject jsonObjrd = jsonread.readObject();
+			JsonObject ack = jsonObjrd.getJsonObject("ack");			
+			int res = ack.getInt("resp");
+			jsonread.close();
+			socket.close();
+			if (res == 0){
+				System.out.println("Send success !");	
+			}
+			else{
+				System.out.println("Error : " + codeError(res));
+				
+			}	
+
+		}catch (UnknownHostException e) {
+			e.printStackTrace();
+
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	
+	
+	
+	
+	public void main(String[] args) {
 
 		Socket socket;
 		int numport=2002;
 		try {
-			Accelerometer acc = new Accelerometer();
-			
-			 //JsonObject obj = JsonObject.crea("{\"name\" :\"capteur1\",\"ID\":\"C14\",\"data\" :\"donnee\"}");
+			socket = new Socket(InetAddress.getLocalHost(), numport);
+			Accelerometer acc = new Accelerometer("ACC","myAcc",-1,2,3);
+			acc.registerSender(acc.getSender_class(), acc.getSender_name());
 			JsonObject jsonObj = Json.createObjectBuilder()
-					.add("name", "nom1")
-					.add("ID ", "nom1")
-					.add("nom", "nom1")
-					.add("nom", "nom1")
-					.build();
-			
+					.add("contents", Json.createObjectBuilder().add("x",acc.getX()).add("y", acc.getY()).add("z", acc.getZ()))
+						.build();
+			send(acc.getSender_id(),jsonObj);
 			socket.close();
 
 		}catch (UnknownHostException e) {

@@ -41,6 +41,31 @@ public class Capteur {
 		this.sender_id = sender_id;
 	}
 	
+	
+
+	String codeError(int code){
+		switch(code){
+			case 400 : return "Bad Request – Your request sucks";
+			case 401 : return "Unauthorized – Your API key is wrong";
+			case 403 : return "Forbidden – The kitten requested is hidden for administrators only";
+			case 404 : return "Not Found – The specified kitten could not be found";
+			case 405 : return "Method Not Allowed – You tried to access a kitten with an invalid method";
+			case 406 : return "Not Acceptable – You requested a format that isn’t json";
+			case 410 : return "Gone – The kitten requested has been removed from our servers";
+			case 418 : return "I’m a teapot";
+			case 428 : return "Deregister failed ";
+			case 438 : return "Send failed";
+			case 429 : return "Too Many Requests – You’re requesting too many kittens! Slow down";
+			case 500 : return "Internal Server Error – We had a problem with our server. Try again later";
+			case 503 : return "Service Unavailable – We’re temporarily offline for maintenance. Please try again later";
+			default : return "Code not found";
+		
+		}
+		
+		
+	}
+	
+	
 	public void registerSender(String senderClass, String senderName){
 		JsonObject jsonObj = Json.createObjectBuilder()
 				.add("name", senderName)
@@ -81,14 +106,16 @@ public class Capteur {
 			InputStream in = socket.getInputStream();
 			JsonReader jsonread = Json.createReader(in);
 			JsonObject jsonObjrd = jsonread.readObject();
-			String res = jsonObjrd.getString("resp");
+			JsonObject ack = jsonObjrd.getJsonObject("ack");			
+			int res = ack.getInt("resp");
 			jsonread.close();
 			socket.close();
-			if (res == "ok"){
+			if (res == 0){
+				System.out.println("Deregister success !");
 				return 1;	
 			}
 			else{
-				System.out.println("Error : " + jsonObjrd.getString("error_id"));
+				System.out.println("Error : " + codeError(res));
 				return 0;
 				
 			}	
@@ -103,7 +130,6 @@ public class Capteur {
 		
 	}
 		
-
 	@Override
 	public String toString() {
 		return "Capteur [sender_class=" + sender_class + ", sender_name="
