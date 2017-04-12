@@ -1,3 +1,5 @@
+package autopiltote;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -17,7 +19,7 @@ public class Bus {
 
 	Collection<Capteur> list_capteur; // liste de capteurs presents dans le bus
 	Collection<JsonObject> list_jsonObject; // liste de message json presents dans le bus
-	private int id = 0; // id unique par capteur
+	private int id = 0; // id unique par capteur , incrémenté de 1 à chaque nouvelle connexion 
 
 	public void checkIn() { // enregistrement cote bus
 		list_capteur = new ArrayList<Capteur>();
@@ -64,14 +66,15 @@ public class Bus {
 			JsonReader jsonread = Json.createReader(in);
 			JsonObject jsonObjrd = jsonread.readObject();
 			int sender_id = jsonObjrd.getInt("sender_id");
-			if (list_capteur.remove(sender_id)){
+			// if "sender_id" is in list_capteur , is remove
+			if (list_capteur.remove(sender_id)){ 
 				JsonObject reponse = Json.createObjectBuilder()
 						.add("type", "deregister")
 						.add("ack", Json.createObjectBuilder().add("resp", 0))
 						.build();
 				jswr.writeObject(reponse);
 			}
-			else {
+			else { // if "sender_id" isn't in list_capteur , an error code is send
 				JsonObject reponse = Json.createObjectBuilder()
 						.add("type", "deregister")
 						.add("ack", Json.createObjectBuilder().add("resp",428))
@@ -105,7 +108,7 @@ public class Bus {
 						.add("ack", Json.createObjectBuilder().add("resp", 0))
 						.build();
 				jswr.writeObject(reponse);
-			} else {
+			} else { // if "sender_id" is'nt know , return an error code
 				JsonObject reponse = Json.createObjectBuilder()
 						.add("type", "send")
 						.add("ack", Json.createObjectBuilder().add("resp",438))
@@ -134,16 +137,9 @@ public class Bus {
 			// BufferedReader read = new BufferedReader(new
 			// InputStreamReader(in));
 			JsonReader jsonread = Json.createReader(in);
-			JsonObject jsonObj = jsonread.readObject();
+			//JsonObject jsonObj = jsonread.readObject();  // ne sert à rien pour le moment.
 			jsonread.close();
 			in.close();
-			// Accelerometer acc = new Accelerometer();
-			// acc.setSender_class(jsonObj.getString("sender_class"));
-			// acc.setSender_name(jsonObj.getString("sender_name"));
-			// acc.setX(jsonObj.getInt("x"));
-			// acc.setY(jsonObj.getInt("y"));
-			// acc.setZ(jsonObj.getInt("z"));
-			// System.out.println(acc);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

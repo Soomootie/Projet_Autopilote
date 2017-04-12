@@ -1,3 +1,4 @@
+package autopiltote;
 
 public class Gps extends Capteur {
 

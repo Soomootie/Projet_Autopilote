@@ -1,3 +1,5 @@
+package autopiltote;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,11 +12,10 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
 
-
 public class Accelerometer extends Capteur{
-	private double x;
-	private double y;
-	private double z;
+	private double x; // x coordinate
+	private double y; // y coordinate
+	private double z; // z coordinate
 	
 	public Accelerometer(){
 	super("ACC", "ACC_1");
@@ -51,6 +52,7 @@ public class Accelerometer extends Capteur{
 	
 	
 	public void send(int sender_id,JsonObject contents){
+		// message send looks like :
 		/* msg {
     "type" : "send",
     "sender_id" : 2,
@@ -63,7 +65,7 @@ public class Accelerometer extends Capteur{
 */
 		Socket socket;
 		try {
-			
+			// message to send
 			JsonObject msg = Json.createObjectBuilder()
 					.add("type","send")
 					.add("sender_id", sender_id)
