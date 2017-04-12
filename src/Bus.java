@@ -9,9 +9,11 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
 
@@ -20,6 +22,38 @@ public class Bus {
 	Collection<Capteur> list_capteur; // liste de capteurs presents dans le bus
 	Collection<JsonObject> list_jsonObject; // liste de message json presents dans le bus
 	private int id = 0; // id unique par capteur , incrémenté de 1 à chaque nouvelle connexion 
+
+	public void list(){ // list all capteur in bus
+		
+		JsonObject result = Json.createObjectBuilder().build();
+		for (Iterator<Capteur> iterator = list_capteur.iterator(); iterator.hasNext();) {
+			Capteur capteur = (Capteur) iterator.next();
+			String sender_class = capteur.getSender_class();
+			String sender_name = capteur.getSender_name();
+			int sender_id = capteur.getSender_id();
+			JsonObject jsonTmp = Json.createObjectBuilder()
+					.add("sender_id", sender_id)
+					.add("sender_class", sender_class)
+					.add("sender_name", sender_name)
+					.build();
+			result = merge(result, jsonTmp);
+		}
+		
+		
+		Socket socket;
+		try{
+			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			OutputStream out = socket.getOutputStream();
+			JsonWriter jswr = Json.createWriter(out);
+			jswr.writeObject(result);
+		}
+		catch (UnknownHostException e){
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
 
 	public void checkIn() { // enregistrement cote bus
 		list_capteur = new ArrayList<Capteur>();
@@ -37,14 +71,14 @@ public class Bus {
 			JsonReader jsonread = Json.createReader(in);
 			JsonObject jsonObjrd = jsonread.readObject();
 			String name = jsonObjrd.getString("name"); // lecture du nom
-														// provenant du capteur
+			// provenant du capteur
 			String type = jsonObjrd.getString("class"); // lecture de la classe
-														// provenant du capteur
+			// provenant du capteur
 			Capteur cap = new Capteur(name, type); // creation d'un capteur
 			cap.setSender_id(id++); // attribution de l'id puis incrÃ©mentation
-									// de celui-ci
+			// de celui-ci
 			list_capteur.add(cap); // ajout du capteur crÃ©Ã© ci-avant dans la
-									// liste de capteurs
+			// liste de capteurs
 			jsonread.close();
 			socket.close();
 
@@ -82,13 +116,13 @@ public class Bus {
 				jswr.writeObject(reponse);
 			}
 		}
-		
+
 		catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 
 
@@ -116,17 +150,29 @@ public class Bus {
 				jswr.writeObject(reponse);
 			}
 		}
-		
+
 		catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 
-	
-	
+	// concatenate two JsonObject
+	public static JsonObject merge(JsonObject oldJsonObject, JsonObject newJsonObject) {
+		JsonObjectBuilder jsonObjectBuilder =Json.createObjectBuilder();
+
+		for (String key : oldJsonObject.keySet()){
+			jsonObjectBuilder.add(key, oldJsonObject.get(key));
+		}
+		for (String key : newJsonObject.keySet()){
+			jsonObjectBuilder.add(key, newJsonObject.get(key));
+		}
+
+		return jsonObjectBuilder.build();
+	}
+
 	public static void main(String[] args) {
 		ServerSocket socketserver;
 		Socket socketduserveur;
