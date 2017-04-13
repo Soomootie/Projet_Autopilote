@@ -1,3 +1,4 @@
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -70,7 +71,7 @@ public class Accelerometer extends Capteur{
 					.add("contents",contents)
 					.build();
 			
-			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			socket = new Socket(InetAddress.getLocalHost(), 2020);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			jswr.writeObject(msg);
@@ -105,7 +106,7 @@ public class Accelerometer extends Capteur{
 	public void main(String[] args) {
 
 		Socket socket;
-		int numport=2002;
+		int numport=2020;
 		try {
 			socket = new Socket(InetAddress.getLocalHost(), numport);
 			Accelerometer acc = new Accelerometer("ACC","myAcc",-1,2,3);

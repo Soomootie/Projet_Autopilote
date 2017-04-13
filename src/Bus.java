@@ -36,7 +36,7 @@ public class Bus {
 				
 		JsonObject result = Json.createObjectBuilder().build();
 		// parcourt la liste list_capteur et ajoute les caracteristiques de chaque capteurs present
-		// dans le liste à l'objet result 
+		// dans le liste ï¿½ l'objet result 
 		for (Iterator<Capteur> iterator = list_capteur.iterator(); iterator.hasNext();) {
 			Capteur capteur = (Capteur) iterator.next();
 			String sender_class = capteur.getSender_class();
@@ -53,7 +53,7 @@ public class Bus {
 		result = merge(ack, result); 
 		Socket socket;
 		try{
-			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			socket = new Socket(InetAddress.getLocalHost(), 2020);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			jswr.writeObject(result);
@@ -74,7 +74,7 @@ public class Bus {
 				.build();
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			socket = new Socket(InetAddress.getLocalHost(), 2020);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			jswr.writeObject(ack); // envoie le message ack
@@ -104,7 +104,7 @@ public class Bus {
 	public void checkOut() { // desenregistrement cote bus
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 2002); // changer numero de port
+			socket = new Socket(InetAddress.getLocalHost(), 2020); // changer numero de port
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			InputStream in = socket.getInputStream();
@@ -140,7 +140,7 @@ public class Bus {
 	public void ackSend() { // ack send 
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			socket = new Socket(InetAddress.getLocalHost(), 2020);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			InputStream in = socket.getInputStream();
@@ -201,14 +201,14 @@ public class Bus {
 	public void getInformation() { // Envoie des messages au client 
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			socket = new Socket(InetAddress.getLocalHost(), 2020);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			InputStream in = socket.getInputStream();
 			JsonReader jsonread = Json.createReader(in);
 			JsonObject jsonObjrd = jsonread.readObject();
 			int msgid = jsonObjrd.getInt("msg_id");
-			SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss"); /* recuperation de la date en milliseconde*/
+			SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss"); // recuperation de la date en milliseconde
 			String dateInString = sdf.format(new Date());
 			Date datepars = sdf.parse(dateInString);
 			int date = (int)datepars.getTime();
@@ -278,13 +278,13 @@ public class Bus {
 	public void getLast(){
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			socket = new Socket(InetAddress.getLocalHost(), 2020);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			InputStream in = socket.getInputStream();
 			JsonReader jsonread = Json.createReader(in);
 			JsonObject jsonObjrd = jsonread.readObject();
-			SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss"); /* recuperation de la date en milliseconde*/
+			SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss");  //recuperation de la date en milliseconde
 			String dateInString = sdf.format(new Date());
 			Date datepars = sdf.parse(dateInString);
 			int date = (int)datepars.getTime();
