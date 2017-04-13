@@ -21,11 +21,12 @@ public class Bus {
 
 	Collection<Capteur> list_capteur; // liste de capteurs presents dans le bus
 	//Collection<JsonObject> list_jsonObject; // liste de message json presents dans le bus
-	private static int MAXTAILLE = 150;int idtab =0;
+	private static int MAXTAILLE = 150;
+	int idtab =0;
 	private SenderbyCapteur []tabmsgId = new SenderbyCapteur[MAXTAILLE]; //tableau des messages dans le bus
 	private static int id_msg =0;
 	//Collection<JsonObject> list_jsonObject; // liste de message json presents dans le bus
-	private int id = 0; // id unique par capteur , incr�ment� de 1 � chaque nouvelle connexion 
+	private int id = 0; // id unique par capteur , incremente de 1 a chaque nouvelle connexion 
 
 	public void list(){ // list all capteur in bus
 		
@@ -36,7 +37,7 @@ public class Bus {
 				
 		JsonObject result = Json.createObjectBuilder().build();
 		// parcourt la liste list_capteur et ajoute les caracteristiques de chaque capteurs present
-		// dans le liste � l'objet result 
+		// dans la liste a l'objet result 
 		for (Iterator<Capteur> iterator = list_capteur.iterator(); iterator.hasNext();) {
 			Capteur capteur = (Capteur) iterator.next();
 			String sender_class = capteur.getSender_class();
@@ -81,15 +82,11 @@ public class Bus {
 			InputStream in = socket.getInputStream();
 			JsonReader jsonread = Json.createReader(in);
 			JsonObject jsonObjrd = jsonread.readObject();
-			String name = jsonObjrd.getString("name"); // lecture du nom
-			// provenant du capteur
-			String type = jsonObjrd.getString("class"); // lecture de la classe
-			// provenant du capteur
+			String name = jsonObjrd.getString("name"); // lecture du nom provenant du capteur
+			String type = jsonObjrd.getString("class"); // lecture de la classe provenant du capteur
 			Capteur cap = new Capteur(name, type); // creation d'un capteur
-			cap.setSender_id(id++); // attribution de l'id puis incrémentation
-			// de celui-ci
-			list_capteur.add(cap); // ajout du capteur créé ci-avant dans la
-			// liste de capteurs
+			cap.setSender_id(id++); // attribution de l'id puis incrementation de celui-ci
+			list_capteur.add(cap); // ajout du capteur cree ci-avant dans la liste de capteurs
 			jsonread.close();
 			socket.close();
 
@@ -148,8 +145,8 @@ public class Bus {
 			JsonObject jsonObjrd = jsonread.readObject();
 			int sendid =jsonObjrd.getInt("sender_id");
 			if (list_capteur.contains(sendid)){ // verification existance de l'id
-				tabmsgId[idtab].setSender_id(sendid); //stock l'id capteur
-				tabmsgId[idtab].setTabid(jsonObjrd.getJsonObject("msg")); //stock le message
+				tabmsgId[idtab].setSender_id(sendid); //stocke l'id capteur
+				tabmsgId[idtab].setTabid(jsonObjrd.getJsonObject("msg")); //stocke le message
 				idtab++;
 				JsonObject  reponse = Json.createObjectBuilder()
 						.add("type", "send")
@@ -215,7 +212,7 @@ public class Bus {
 			if (list_capteur.contains(jsonObjrd.getInt("sender_id"))){ // verification existance de l'id dans la liste
 				if(msgid>=0 && msgid<MAXTAILLE){
 					int indice = indexcapt(jsonObjrd.getInt("sender_id")); //indice du capteur dans le tableau capteur-message
-					if(msgid < tabmsgId[indice].getmsgid()){ //verifie si msgid inferieur à l'id le plus ancien
+					if(msgid < tabmsgId[indice].getmsgid()){ //verifie si msgid inferieur a� l'id le plus ancien
 					JsonObject msg = tabmsgId[indice].getTabid(0); //message le plus ancien dans la table des messages
 					JsonObject repmsg = Json.createObjectBuilder()
 							.add("type","get")
@@ -226,7 +223,7 @@ public class Bus {
 							.build();
 					jswr.writeObject(repmsg);
 					}
-					else if(msgid>tabmsgId[indice].getmsgid()){ //verifie si msgid superieur à l'id le plus ancien
+					else if(msgid>tabmsgId[indice].getmsgid()){ //verifie si msgid superieur a� l'id le plus ancien
 						JsonObject msg = tabmsgId[indice].getTabid(tabmsgId[indice].getmsgid()-1); // message le plus recent
 						JsonObject repmsg = Json.createObjectBuilder()
 								.add("type","get")
@@ -245,7 +242,7 @@ public class Bus {
 						jswr.writeObject(reponse);
 					}
 					else{
-					JsonObject msg = tabmsgId[indice].getTabid(msgid);//recupere le message souhaité
+					JsonObject msg = tabmsgId[indice].getTabid(msgid);//recupere le message souhaite
 					JsonObject repmsg = Json.createObjectBuilder()
 							.add("type","get")
 							.add("ack", Json.createObjectBuilder().add("resp", 0))
@@ -269,7 +266,6 @@ public class Bus {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -290,7 +286,7 @@ public class Bus {
 			int date = (int)datepars.getTime();
 			if (list_capteur.contains(jsonObjrd.getInt("sender_id"))){ // verification existance de l'id dans la liste
 					int indice = indexcapt(jsonObjrd.getInt("sender_id")); //indice du capteur dans le tableau capteur-message
-					JsonObject msg = tabmsgId[indice].getTabid(tabmsgId[indice].getmsgid());//recupere le message demandé d'un capteur
+					JsonObject msg = tabmsgId[indice].getTabid(tabmsgId[indice].getmsgid());//recupere le message demande d'un capteur
 					int msgid = tabmsgId[indice].getmsgid();
 					JsonObject repmsg = Json.createObjectBuilder()
 							.add("type","get")
@@ -315,7 +311,6 @@ public class Bus {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -332,7 +327,7 @@ public class Bus {
 			// BufferedReader read = new BufferedReader(new
 			// InputStreamReader(in));
 			JsonReader jsonread = Json.createReader(in);
-			//JsonObject jsonObj = jsonread.readObject();  // ne sert � rien pour le moment.
+			//JsonObject jsonObj = jsonread.readObject();  // ne sert a rien pour le moment.
 			jsonread.close();
 			in.close();
 		} catch (IOException e) {
