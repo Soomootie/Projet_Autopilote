@@ -1,5 +1,3 @@
-package autopiltote;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -7,21 +5,29 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
-
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
 
+import com.sun.org.apache.bcel.internal.generic.NEW;
+
 public class Bus {
 
 	Collection<Capteur> list_capteur; // liste de capteurs presents dans le bus
+	//Collection<JsonObject> list_jsonObject; // liste de message json presents dans le bus
+	private static int MAXTAILLE = 150;int idtab =0;
+	private SenderbyCapteur []tabmsgId = new SenderbyCapteur[MAXTAILLE]; //tableau des messages dans le bus
+	private static int id_msg =0;
 	Collection<JsonObject> list_jsonObject; // liste de message json presents dans le bus
-	private int id = 0; // id unique par capteur , incrémenté de 1 à chaque nouvelle connexion 
+	private int id = 0; // id unique par capteur , incrï¿½mentï¿½ de 1 ï¿½ chaque nouvelle connexion 
 
 	public void list(){ // list all capteur in bus
 		
@@ -142,8 +148,11 @@ public class Bus {
 			InputStream in = socket.getInputStream();
 			JsonReader jsonread = Json.createReader(in);
 			JsonObject jsonObjrd = jsonread.readObject();
-			if (list_capteur.contains(jsonObjrd.getInt("sender_id"))){ // verification existance de l'id
-				list_jsonObject.add(jsonObjrd);
+			int sendid =jsonObjrd.getInt("sender_id");
+			if (list_capteur.contains(sendid)){ // verification existance de l'id
+				tabmsgId[idtab].setSender_id(sendid); //stock l'id capteur
+				tabmsgId[idtab].setTabid(jsonObjrd.getJsonObject("msg")); //stock le message
+				idtab++;
 				JsonObject  reponse = Json.createObjectBuilder()
 						.add("type", "send")
 						.add("ack", Json.createObjectBuilder().add("resp", 0))
@@ -180,6 +189,78 @@ public class Bus {
 		return jsonObjectBuilder.build();
 	}
 
+	public int indexcapt(int sender_id){
+		for(int i=0;i<MAXTAILLE;i++){
+			if(sender_id == tabmsgId[i].getSender_id())
+				return i;
+			
+		}
+		return 0;
+		
+	}
+	
+	
+	public void getInformation() { // Envoie des messages au client 
+		Socket socket;
+		try {
+			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			OutputStream out = socket.getOutputStream();
+			JsonWriter jswr = Json.createWriter(out);
+			InputStream in = socket.getInputStream();
+			JsonReader jsonread = Json.createReader(in);
+			JsonObject jsonObjrd = jsonread.readObject();
+			int msgid = jsonObjrd.getInt("msg_id");
+			if (list_capteur.contains(jsonObjrd.getInt("sender_id"))){ // verification existance de l'id dans la liste
+				if(msgid>=0 && msgid<MAXTAILLE){
+					int indice = indexcapt(jsonObjrd.getInt("sender_id")); //indice du capteur dans le tableau capteur-message
+					if(msgid < tabmsgId[indice].getmsgid()){ //verifie si msgid inferieur Ã  l'id le plus ancien
+					JsonObject msg = tabmsgId[indice].getTabid(0); //message le plus
+					}
+					else if(msgid>tabmsgId[indice].getmsgid()){ //verifie si msgid superieur Ã  l'id le plus ancien
+						JsonObject msg = tabmsgId[indice].getTabid(0);
+					}
+					else if(tabmsgId[indice].getTabid(0) == null){ //verifie si le tableau des messages est vide
+						JsonObject reponse = Json.createObjectBuilder()
+								.add("type", "get")
+								.add("ack", Json.createObjectBuilder().add("resp",404))
+								.build();
+						jswr.writeObject(reponse);
+					}
+					else{
+					JsonObject msg = tabmsgId[indice].getTabid(msgid);//recupere le message souhaitÃ©
+					SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss"); /* recuperation de la date en milliseconde*/
+					String dateInString = sdf.format(new Date());
+					Date datepars = sdf.parse(dateInString);
+					double date = datepars.getTime();
+					JsonObject repmsg = Json.createObjectBuilder()
+							.add("type","get")
+							.add("ack", Json.createObjectBuilder().add("resp", 0))
+							.add("date",date)
+							.add("msg_id", msgid)
+							.add("contents",msg)
+							.build();
+					jswr.writeObject(repmsg);
+					}
+				}
+			} else {
+				JsonObject reponse = Json.createObjectBuilder()
+						.add("type", "get")
+						.add("ack", Json.createObjectBuilder().add("resp",404))
+						.build();
+				jswr.writeObject(reponse);
+			}
+		}
+		catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
 	public static void main(String[] args) {
 		ServerSocket socketserver;
 		Socket socketduserveur;
@@ -190,7 +271,7 @@ public class Bus {
 			// BufferedReader read = new BufferedReader(new
 			// InputStreamReader(in));
 			JsonReader jsonread = Json.createReader(in);
-			//JsonObject jsonObj = jsonread.readObject();  // ne sert à rien pour le moment.
+			//JsonObject jsonObj = jsonread.readObject();  // ne sert ï¿½ rien pour le moment.
 			jsonread.close();
 			in.close();
 		} catch (IOException e) {
