@@ -24,20 +24,15 @@ public class Bus {
 	private static int MAXTAILLE = 150;
 	int idtab =0;
 	private SenderbyCapteur []tabmsgId = new SenderbyCapteur[MAXTAILLE]; //tableau des messages dans le bus
-	private static int id_msg =0;
+	//private static int id_msg =0;
 	//Collection<JsonObject> list_jsonObject; // liste de message json presents dans le bus
 	private int id = 0; // id unique par capteur , incremente de 1 a chaque nouvelle connexion 
 
-	public void list(){ // list all capteur in bus
-		
-		JsonObject ack = Json.createObjectBuilder()
-				.add("type", "list")
-				.add("ack", Json.createObjectBuilder().add("resp","ok")) // changer le resp (ici action par default)
-				.build();
-				
+	
+	// parcourt la liste list_capteur et ajoute les caracteristiques de chaque capteurs present
+	// dans la liste a l'objet result
+	public JsonObject list_capteurs (String type, String data, int id){
 		JsonObject result = Json.createObjectBuilder().build();
-		// parcourt la liste list_capteur et ajoute les caracteristiques de chaque capteurs present
-		// dans la liste a l'objet result 
 		for (Iterator<Capteur> iterator = list_capteur.iterator(); iterator.hasNext();) {
 			Capteur capteur = (Capteur) iterator.next();
 			String sender_class = capteur.getSender_class();
@@ -48,16 +43,53 @@ public class Bus {
 					.add("sender_class", sender_class)
 					.add("sender_name", sender_name)
 					.build();
-			result = merge(result, jsonTmp);
+			if ( (type.equals("sender_class") && data.equals(sender_class)) 
+					|| (type.equals("sender_name") && data.equals(sender_name)) 
+					|| (type.equals("sender_id") && id == sender_id)
+					|| (type.equals("") && data.equals("") && id == -1))
+					result = merge(result, jsonTmp);	
 		}
-		
-		result = merge(ack, result); 
+		return result;
+	}
+	
+	public void list(){ // list all capteur in bus
 		Socket socket;
+		String s_class = "";
+		String s_name = "";
+		int s_id = -1;
+		JsonObject ack = Json.createObjectBuilder()
+				.add("type", "list")
+				.add("ack", Json.createObjectBuilder().add("resp","ok")) // changer le resp (ici action par default)
+				.build();
+		
 		try{
 			socket = new Socket(InetAddress.getLocalHost(), 2020);
 			OutputStream out = socket.getOutputStream();
+			InputStream in = socket.getInputStream();
+			JsonReader jsonread = Json.createReader(in);
+			JsonObject jsonObjrd = jsonread.readObject();
+			try { // try catch si la chiane de caractere recherchee dans l'objet n'est pas trouvee
+				s_class = jsonObjrd.getString("sender_class");
+			} catch (NullPointerException e) {}
+			try{
+				s_name = jsonObjrd.getString("sender_name");
+			} catch (NullPointerException e) {}
+			try{
+				s_id = jsonObjrd.getInt("sender_id");	
+			} catch (NullPointerException e) {}
+			JsonObject list;
+			if (! s_class.equals("")){ // on teste si la chaine a bien ete trouvee
+				list = list_capteurs("sender_class", s_class , -1);
+			} else if ( ! s_name.equals("")){ // idem
+				list = list_capteurs("sender_name", s_name , -1);
+			} else if ( s_id != -1){  // idem
+				list = list_capteurs("sender_id", "" , s_id);
+			} else { // cas par default on renvoie tous capteurs presents dans list_capteur
+				list = list_capteurs("", "", -1);
+			}
+			list = merge (ack, list);
 			JsonWriter jswr = Json.createWriter(out);
-			jswr.writeObject(result);
+			jswr.writeObject(list);
 		}
 		catch (UnknownHostException e){
 			e.printStackTrace();
@@ -66,6 +98,7 @@ public class Bus {
 		}
 
 	}
+	
 
 	public void checkIn() { // enregistrement cote bus
 		list_capteur = new ArrayList<Capteur>();
