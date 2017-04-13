@@ -29,7 +29,14 @@ public class Bus {
 
 	public void list(){ // list all capteur in bus
 		
+		JsonObject ack = Json.createObjectBuilder()
+				.add("type", "list")
+				.add("ack", Json.createObjectBuilder().add("resp","ok")) // changer le resp (ici action par default)
+				.build();
+				
 		JsonObject result = Json.createObjectBuilder().build();
+		// parcourt la liste list_capteur et ajoute les caracteristiques de chaque capteurs present
+		// dans le liste à l'objet result 
 		for (Iterator<Capteur> iterator = list_capteur.iterator(); iterator.hasNext();) {
 			Capteur capteur = (Capteur) iterator.next();
 			String sender_class = capteur.getSender_class();
@@ -43,7 +50,7 @@ public class Bus {
 			result = merge(result, jsonTmp);
 		}
 		
-		
+		result = merge(ack, result); 
 		Socket socket;
 		try{
 			socket = new Socket(InetAddress.getLocalHost(), 2002);
