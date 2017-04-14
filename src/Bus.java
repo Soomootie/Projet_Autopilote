@@ -31,7 +31,7 @@ public class Bus {
 	
 	// parcourt la liste list_capteur et ajoute les caracteristiques de chaque capteurs present
 	// dans la liste a l'objet result
-	public JsonObject list_capteurs (String type, String data, int id){
+	public JsonObject list_capteurs (String type, String data){
 		JsonObject result = Json.createObjectBuilder().build();
 		for (Iterator<Capteur> iterator = list_capteur.iterator(); iterator.hasNext();) {
 			Capteur capteur = (Capteur) iterator.next();
@@ -45,8 +45,7 @@ public class Bus {
 					.build();
 			if ( (type.equals("sender_class") && data.equals(sender_class)) 
 					|| (type.equals("sender_name") && data.equals(sender_name)) 
-					|| (type.equals("sender_id") && id == sender_id)
-					|| (type.equals("") && data.equals("") && id == -1))
+					|| (type.equals("") && data.equals("")))
 					result = merge(result, jsonTmp);	
 		}
 		return result;
@@ -56,7 +55,6 @@ public class Bus {
 		Socket socket;
 		String s_class = "";
 		String s_name = "";
-		int s_id = -1;
 		JsonObject ack = Json.createObjectBuilder()
 				.add("type", "list")
 				.add("ack", Json.createObjectBuilder().add("resp","ok")) // changer le resp (ici action par default)
@@ -74,18 +72,13 @@ public class Bus {
 			try{
 				s_name = jsonObjrd.getString("sender_name");
 			} catch (NullPointerException e) {}
-			try{
-				s_id = jsonObjrd.getInt("sender_id");	
-			} catch (NullPointerException e) {}
 			JsonObject list;
 			if (! s_class.equals("")){ // on teste si la chaine a bien ete trouvee
-				list = list_capteurs("sender_class", s_class , -1);
+				list = list_capteurs("sender_class", s_class);
 			} else if ( ! s_name.equals("")){ // idem
-				list = list_capteurs("sender_name", s_name , -1);
-			} else if ( s_id != -1){  // idem
-				list = list_capteurs("sender_id", "" , s_id);
+				list = list_capteurs("sender_name", s_name);
 			} else { // cas par default on renvoie tous capteurs presents dans list_capteur
-				list = list_capteurs("", "", -1);
+				list = list_capteurs("", "");
 			}
 			list = merge (ack, list);
 			JsonWriter jswr = Json.createWriter(out);
