@@ -73,7 +73,7 @@ public class Capteur {
 				.build();
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			socket = new Socket(InetAddress.getLocalHost(), 8888);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			jswr.writeObject(jsonObj);
@@ -99,7 +99,7 @@ public class Capteur {
 				.build();
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 2002);
+			socket = new Socket(InetAddress.getLocalHost(), 8888);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			jswr.writeObject(jsonObj);

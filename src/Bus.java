@@ -61,7 +61,7 @@ public class Bus {
 				.build();
 		
 		try{
-			socket = new Socket(InetAddress.getLocalHost(), 2020);
+			socket = new Socket(InetAddress.getLocalHost(), 8888);
 			OutputStream out = socket.getOutputStream();
 			InputStream in = socket.getInputStream();
 			JsonReader jsonread = Json.createReader(in);
@@ -101,7 +101,7 @@ public class Bus {
 				.build();
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 2020);
+			socket = new Socket(InetAddress.getLocalHost(), 8888);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			jswr.writeObject(ack); // envoie le message ack
@@ -127,7 +127,7 @@ public class Bus {
 	public void checkOut() { // desenregistrement cote bus
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 2020); // changer numero de port
+			socket = new Socket(InetAddress.getLocalHost(), 8888); // changer numero de port
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			InputStream in = socket.getInputStream();
@@ -163,7 +163,7 @@ public class Bus {
 	public void ackSend() { // ack send 
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 2020);
+			socket = new Socket(InetAddress.getLocalHost(), 8888);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			InputStream in = socket.getInputStream();
@@ -224,7 +224,7 @@ public class Bus {
 	public void getInformation() { // Envoie des messages au client 
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 2020);
+			socket = new Socket(InetAddress.getLocalHost(), 8888);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			InputStream in = socket.getInputStream();
@@ -300,7 +300,7 @@ public class Bus {
 	public void getLast(){
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 2020);
+			socket = new Socket(InetAddress.getLocalHost(), 8888);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			InputStream in = socket.getInputStream();
@@ -346,6 +346,7 @@ public class Bus {
 	public static void main(String[] args) {
 		ServerSocket socketserver;
 		Socket socketduserveur;
+		// METTRE BOUCLE WHILE \
 		try {
 			socketserver = new ServerSocket(Integer.parseInt(args[0]));
 			socketduserveur = socketserver.accept();

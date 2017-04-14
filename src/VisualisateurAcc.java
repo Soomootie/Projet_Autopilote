@@ -44,7 +44,7 @@ public class VisualisateurAcc {
 				.build();
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 7777);
+			socket = new Socket(InetAddress.getLocalHost(), 8888);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			jswr.writeObject(jsonObj);
@@ -85,7 +85,7 @@ public void receiveLast(){
 				.build();
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 7777);
+			socket = new Socket(InetAddress.getLocalHost(), 8888);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			jswr.writeObject(jsonObj);
@@ -125,7 +125,7 @@ public void receiveLast(){
 				.build();
 		Socket socket;
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 7777);
+			socket = new Socket(InetAddress.getLocalHost(), 8888);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			jswr.writeObject(jsonObj);
@@ -162,8 +162,9 @@ public void receiveLast(){
 		
 	}	
 	
-	public void main(String[] args) {
-		receiveInformation();
+	public static void main(String[] args) {
+		VisualisateurAcc acc = new VisualisateurAcc(2, 9);
+		acc.receiveInformation();
 	}
 	
 	

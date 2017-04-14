@@ -50,7 +50,7 @@ public class Accelerometer extends Capteur{
 	}
 	
 	
-	public void send(int sender_id,JsonObject contents){
+	public  void send(int sender_id,JsonObject contents){
 		// message send looks like :
 		/* msg {
     "type" : "send",
@@ -71,7 +71,7 @@ public class Accelerometer extends Capteur{
 					.add("contents",contents)
 					.build();
 			
-			socket = new Socket(InetAddress.getLocalHost(), 2020);
+			socket = new Socket(InetAddress.getLocalHost(), 8888);
 			OutputStream out = socket.getOutputStream();
 			JsonWriter jswr = Json.createWriter(out);
 			jswr.writeObject(msg);
@@ -100,13 +100,10 @@ public class Accelerometer extends Capteur{
 	}
 	
 	
-	
-	
-	
-	public void main(String[] args) {
+	public static void main(String[] args) {
 
 		Socket socket;
-		int numport=2020;
+		int numport=8888;
 		try {
 			socket = new Socket(InetAddress.getLocalHost(), numport);
 			Accelerometer acc = new Accelerometer("ACC","myAcc",-1,2,3);
@@ -114,11 +111,11 @@ public class Accelerometer extends Capteur{
 			JsonObject jsonObj = Json.createObjectBuilder()
 					.add("contents", Json.createObjectBuilder().add("x",acc.getX()).add("y", acc.getY()).add("z", acc.getZ()))
 						.build();
-			send(acc.getSender_id(),jsonObj);
+			
+			acc.send(acc.getSender_id(),jsonObj);
 			socket.close();
 
 		}catch (UnknownHostException e) {
-
 			e.printStackTrace();
 		}catch (IOException e) {
 
