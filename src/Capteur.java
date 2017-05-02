@@ -95,9 +95,10 @@ public class Capteur {
 		
 		JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
 		JsonObject object = jsonReader.readObject();
-		System.out.println("FONCTION registerSender");
-		this.setSender_id(object.getInt("id"));
-		System.out.println(object.getString("resp"));
+		System.out.println(object);
+		this.setSender_id(object.getInt("sender_id"));
+		//System.out.println(object.getString("ack").toString());
+		
 		jsonReader.close();
 	}
 

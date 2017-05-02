@@ -79,6 +79,7 @@ public class Accelerometer extends Capteur{
 			
 			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
 			BufferedWriter wr = new BufferedWriter(out);
+			
 			wr.write(jsonText);
 			wr.newLine();
 			wr.flush();

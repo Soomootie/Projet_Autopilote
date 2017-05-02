@@ -25,14 +25,19 @@ import javax.json.JsonWriter;
 
 public class Bus {
 
-	Collection<Capteur> list_capteur; // liste de capteurs presents dans le bus
+	private Collection<Capteur> list_capteur; // liste de capteurs presents dans le bus
 	//Collection<JsonObject> list_jsonObject; // liste de message json presents dans le bus
 	private static int MAXTAILLE = 150;
 	int idtab =0;
-	private SenderbyCapteur []tabmsgId = new SenderbyCapteur[MAXTAILLE]; //tableau des messages dans le bus
+	private SenderbyCapteur []tabmsgId; //tableau des messages dans le bus
 	//private static int id_msg =0;
 	//Collection<JsonObject> list_jsonObject; // liste de message json presents dans le bus
 	private int id = 0; // id unique par capteur , incremente de 1 a chaque nouvelle connexion 
+	
+	public Bus() {
+		super();
+		this.tabmsgId = new SenderbyCapteur[MAXTAILLE];
+	}
 
 
 	// parcourt la liste list_capteur et ajoute les caracteristiques de chaque capteurs present
@@ -73,7 +78,6 @@ public class Bus {
 
 			InputStreamReader in = new InputStreamReader(socket.getInputStream());
 			BufferedReader rd = new BufferedReader(in);
-
 			String jsonResp = rd.readLine();
 
 			JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
@@ -111,36 +115,31 @@ public class Bus {
 	}
 
 
-	public void checkIn() { // enregistrement cote bus
+	public void checkIn(JsonObject jsonObject, Socket socket) { // enregistrement cote bus
 		list_capteur = new ArrayList<Capteur>();
+		
 		JsonObject ack = Json.createObjectBuilder()
 				.add("type", "register")
+				.add("sender_id",id++)
 				.add("ack", Json.createObjectBuilder().add("resp", "ok"))
 				.build();
 		String jsonText = ack.toString();
-		Socket socket;
+		
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 8888);
+			
 			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
 			BufferedWriter wr = new BufferedWriter(out);
-
+			
+			String name = jsonObject.getString("name"); // lecture du nom provenant du capteur
+			String type = jsonObject.getString("class"); // lecture de la classe provenant du capteur
+			Capteur cap = new Capteur(name, type); // creation d'un capteur
+			cap.setSender_id(id); // attribution de l'id puis incrementation de celui-ci
+			list_capteur.add(cap); // ajout du capteur cree ci-avant dans la liste de capteurs
+			
 			wr.write(jsonText); //envoie le message ack
 			wr.newLine();
 			wr.flush();
-
-			InputStreamReader in =new InputStreamReader(socket.getInputStream());
-			BufferedReader rd = new BufferedReader(in);
-
-			String jsonResp = rd.readLine();
-
-			JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
-			JsonObject object = jsonReader.readObject();
-			String name = object.getString("name"); // lecture du nom provenant du capteur
-			String type = object.getString("class"); // lecture de la classe provenant du capteur
-			Capteur cap = new Capteur(name, type); // creation d'un capteur
-			cap.setSender_id(id++); // attribution de l'id puis incrementation de celui-ci
-			list_capteur.add(cap); // ajout du capteur cree ci-avant dans la liste de capteurs
-			jsonReader.close();
+			
 			socket.close();
 
 		} catch (UnknownHostException e) {
@@ -196,21 +195,12 @@ public class Bus {
 	}
 
 
-	public void ackSend() { // ack send 
-		Socket socket;
+	public void ackSend(JsonObject object , Socket socket) { // ack send 
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 8888);
 
 			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
 			BufferedWriter wr = new BufferedWriter(out);
 
-			InputStreamReader in = new InputStreamReader(socket.getInputStream());
-			BufferedReader rd = new BufferedReader(in);
-
-			String jsonResp = rd.readLine();
-
-			JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
-			JsonObject object = jsonReader.readObject();
 			int sendid =object.getInt("sender_id");
 			if (list_capteur.contains(sendid)){ // verification existance de l'id
 				tabmsgId[idtab].setSender_id(sendid); //stocke l'id capteur
@@ -234,7 +224,6 @@ public class Bus {
 				wr.newLine();
 				wr.flush();
 			}
-			jsonReader.close();
 		}	
 		catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -349,7 +338,7 @@ public class Bus {
 				String jsonText = reponse.toString();
 				wr.write(jsonText);
 				wr.newLine();
-				wr.flush();			
+				wr.flush();	
 			}
 			jsonReader.close();
 		}
@@ -425,19 +414,37 @@ public class Bus {
 	public static void main(String[] args) {
 		ServerSocket socketserver;
 		Socket socketduserveur;
-		// METTRE BOUCLE WHILE \
+		Bus bus = new Bus();
 		while (true){
 			try {
-
+				
 				socketserver = new ServerSocket(Integer.parseInt(args[0]));
 				socketduserveur = socketserver.accept();
+				
 				InputStreamReader in = new InputStreamReader(socketduserveur.getInputStream());
 				BufferedReader rd = new BufferedReader(in);
 
-				System.out.println(rd.readLine());
 				OutputStreamWriter out = new OutputStreamWriter(socketduserveur.getOutputStream());
 				BufferedWriter wr = new BufferedWriter(out);
 				
+				String jsonResp = rd.readLine();
+				System.out.println(jsonResp);
+				
+				try {
+					JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
+					JsonObject object = jsonReader.readObject();
+					jsonResp = object.getString("type");
+					if (jsonResp.equals("register")){
+						bus.checkIn(object, socketduserveur);
+					}
+					if (jsonResp.equals("send")){
+						bus.ackSend(object , socketduserveur);
+					}
+					jsonReader.close();
+					
+				} catch (NullPointerException e) {}
+				
+				/*
 				JsonObject object = Json.createObjectBuilder()
 						.add("id", 9)
 						.add("resp", "blabla")
@@ -447,7 +454,7 @@ public class Bus {
 				
 				wr.write(jsonText);
 				wr.newLine();
-				wr.flush();
+				wr.flush();*/
 
 				in.close();
 				socketserver.close();
