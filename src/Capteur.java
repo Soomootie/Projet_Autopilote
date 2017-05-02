@@ -1,6 +1,11 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.*;
 
 import javax.json.*;
@@ -9,13 +14,13 @@ public class Capteur {
 	String sender_class;
 	String sender_name;
 	int sender_id;
-		
+
 	public Capteur(String sender_class, String sender_name) {
 		this.sender_class = sender_class;
 		this.sender_name = sender_name;
 		this.sender_id = -1;
 	}
-	
+
 	public String getSender_class() {
 		return sender_class;
 	}
@@ -40,59 +45,62 @@ public class Capteur {
 	public void setSender_id(int sender_id) {
 		this.sender_id = sender_id;
 	}
-	
-	
+
+
 
 	String codeError(int code){
 		switch(code){
-			case 400 : return "Bad Request - Your request sucks";
-			case 401 : return "Unauthorized - Your API key is wrong";
-			case 403 : return "Forbidden - The kitten requested is hidden for administrators only";
-			case 404 : return "Not Found - The specified kitten could not be found";
-			case 405 : return "Method Not Allowed - You tried to access a kitten with an invalid method";
-			case 406 : return "Not Acceptable - You requested a format that isn't json";
-			case 410 : return "Gone - The kitten requested has been removed from our servers";
-			case 418 : return "I'm a teapot";
-			case 428 : return "Deregister failed ";
-			case 438 : return "Send failed";
-			case 429 : return "Too Many Requests - You're requesting too many kittens! Slow down";
-			case 500 : return "Internal Server Error - We had a problem with our server. Try again later";
-			case 503 : return "Service Unavailable - We're temporarily offline for maintenance. Please try again later";
-			default : return "Code not found";
-		
+		case 400 : return "Bad Request - Your request sucks";
+		case 401 : return "Unauthorized - Your API key is wrong";
+		case 403 : return "Forbidden - The kitten requested is hidden for administrators only";
+		case 404 : return "Not Found - The specified kitten could not be found";
+		case 405 : return "Method Not Allowed - You tried to access a kitten with an invalid method";
+		case 406 : return "Not Acceptable - You requested a format that isn't json";
+		case 410 : return "Gone - The kitten requested has been removed from our servers";
+		case 418 : return "I'm a teapot";
+		case 428 : return "Deregister failed ";
+		case 438 : return "Send failed";
+		case 429 : return "Too Many Requests - You're requesting too many kittens! Slow down";
+		case 500 : return "Internal Server Error - We had a problem with our server. Try again later";
+		case 503 : return "Service Unavailable - We're temporarily offline for maintenance. Please try again later";
+		default : return "Code not found";
+
 		}
-		
-		
+
+
 	}
-	
-	
-	public void registerSender(String senderClass, String senderName){
+
+
+	public void registerSender(String senderClass, String senderName, Socket socket) throws UnknownHostException , IOException{
+
 		JsonObject jsonObj = Json.createObjectBuilder()
+				.add("type", "register")
 				.add("name", senderName)
 				.add("class", senderClass)
 				.build();
-		Socket socket;
-		try {
-			socket = new Socket(InetAddress.getLocalHost(), 8888);
-			OutputStream out = socket.getOutputStream();
-			JsonWriter jswr = Json.createWriter(out);
-			jswr.writeObject(jsonObj);
-			InputStream in = socket.getInputStream();
-			JsonReader jsonread = Json.createReader(in);
-			JsonObject jsonObjrd = jsonread.readObject();
-			this.setSender_id(jsonObjrd.getInt("id"));
-			System.out.println(jsonObjrd.getString("resp"));
-			jsonread.close();
-			socket.close();
 
-		}catch (UnknownHostException e) {
-			e.printStackTrace();
-		}catch (IOException e) {
-			e.printStackTrace();
-		}
+		String jsonText = jsonObj.toString();
+
+		InputStreamReader in = new InputStreamReader(socket.getInputStream());
+		BufferedReader rd = new BufferedReader(in);
 		
+		OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
+		BufferedWriter wr = new BufferedWriter(out);
+		
+		wr.write(jsonText);
+		wr.newLine();
+		wr.flush();
+		
+		String jsonResp = rd.readLine();	
+		
+		JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
+		JsonObject object = jsonReader.readObject();
+		System.out.println("FONCTION registerSender");
+		this.setSender_id(object.getInt("id"));
+		System.out.println(object.getString("resp"));
+		jsonReader.close();
 	}
-	
+
 	public int deregisterSender(int sender_id){
 		JsonObject jsonObj = Json.createObjectBuilder()
 				.add("sender_id", sender_id)
@@ -117,7 +125,7 @@ public class Capteur {
 			else{
 				System.out.println("Error : " + codeError(res));
 				return 0;
-				
+
 			}	
 
 		}catch (UnknownHostException e) {
@@ -127,12 +135,12 @@ public class Capteur {
 			e.printStackTrace();
 			return -1;
 		}
-		
+
 	}
-		
+
 	@Override
 	public String toString() {
 		return "Capteur [sender_class=" + sender_class + ", sender_name="
-			+ sender_name + "]";
+				+ sender_name + "]";
 	}
 }
