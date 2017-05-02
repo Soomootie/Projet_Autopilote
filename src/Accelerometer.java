@@ -119,7 +119,7 @@ public class Accelerometer extends Capteur{
 		try {
 			socket = new Socket(InetAddress.getLocalHost(), numport);
 			Accelerometer acc = new Accelerometer("ACC","myAcc",-1,2,3);
-			Accelerometer acc2 = new Accelerometer("ACC", "_Acc", 1, 2, 3);
+			//Accelerometer acc2 = new Accelerometer("ACC", "_Acc", 1, 2, 3);
 			System.out.println("AVANT");
 			acc.registerSender(acc.getSender_class(), acc.getSender_name(), socket);
 			System.out.println("APRES registerSender");
@@ -127,7 +127,7 @@ public class Accelerometer extends Capteur{
 			System.out.println("APRES");
 			
 			JsonObject jsonObj = Json.createObjectBuilder()
-					.add("contents", Json.createObjectBuilder().add("x",acc.getX()).add("y", acc.getY()).add("z", acc.getZ()))
+					.add("x",acc.getX()).add("y", acc.getY()).add("z", acc.getZ())
 						.build();
 			
 			acc.send(acc.getSender_id(),jsonObj);

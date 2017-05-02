@@ -62,6 +62,16 @@ public class Bus {
 		return result;
 	}
 
+	public boolean is_in(int id){
+		for (Iterator<Capteur> iterator = list_capteur.iterator(); iterator.hasNext();) {
+			Capteur capteur = (Capteur) iterator.next();
+			int sender_id = capteur.getSender_id();
+			if ( sender_id == id)
+				return true;
+		}
+		return false;
+	}
+	
 	public void list(){ // list all capteur in bus
 		Socket socket;
 		String s_class = "";
@@ -120,7 +130,7 @@ public class Bus {
 		
 		JsonObject ack = Json.createObjectBuilder()
 				.add("type", "register")
-				.add("sender_id",id++)
+				.add("sender_id",++id)
 				.add("ack", Json.createObjectBuilder().add("resp", "ok"))
 				.build();
 		String jsonText = ack.toString();
@@ -202,10 +212,8 @@ public class Bus {
 			BufferedWriter wr = new BufferedWriter(out);
 
 			int sendid =object.getInt("sender_id");
-			if (list_capteur.contains(sendid)){ // verification existance de l'id
-				tabmsgId[idtab].setSender_id(sendid); //stocke l'id capteur
-				tabmsgId[idtab].setTabid(object.getJsonObject("msg")); //stocke le message
-				idtab++;
+			if (is_in(sendid)){ // verification existance de l'id
+				
 				JsonObject  reponse = Json.createObjectBuilder()
 						.add("type", "send")
 						.add("ack", Json.createObjectBuilder().add("resp", 0))
@@ -214,6 +222,11 @@ public class Bus {
 				wr.write(jsonText);
 				wr.newLine();
 				wr.flush();
+				
+				tabmsgId[idtab].setSender_id(sendid); //stocke l'id capteur
+				tabmsgId[idtab].setTabid(object.getJsonObject("msg")); //stocke le message
+				idtab++;
+				
 			} else { // if "sender_id" is'nt know , return an error code
 				JsonObject reponse = Json.createObjectBuilder()
 						.add("type", "send")
