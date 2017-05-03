@@ -3,12 +3,12 @@ import javax.json.JsonObject;
 public class SenderbyCapteur {
 	private int sender_id;
 	static int maxtaille=150;
-	private JsonObject[] tabid =new JsonObject[maxtaille] ;
+	private JsonObject[] tabid;
 	private int msgid=0;
-	public SenderbyCapteur(int sender_id, int msg_id, JsonObject[] tabid) {
+	public SenderbyCapteur() {
 		super();
-		this.sender_id = sender_id;
-		this.tabid = tabid;
+		this.sender_id = 0;
+		this.tabid = new JsonObject[maxtaille] ;
 	}
 
 	public int getSender_id() {
