@@ -46,21 +46,24 @@ public class Bus {
 		JsonArray result = Json.createArrayBuilder().build();
 		for (Iterator<Capteur> iterator = list_capteur.iterator(); iterator.hasNext();) {
 			Capteur capteur = (Capteur) iterator.next();
-			String sender_class = capteur.getSender_class();
-			String sender_name = capteur.getSender_name();
-			int sender_id = capteur.getSender_id();
+			System.out.println("Capteur " + capteur);
+			String senderClass = capteur.getSender_class();
+			String senderName = capteur.getSender_name();
+			int senderId = capteur.getSender_id();
 			JsonObject jsonTmp = Json.createObjectBuilder()
-					.add("sender_id", sender_id)
-					.add("sender_class", sender_class)
-					.add("sender_name", sender_name)
+					.add("sender_id", senderId)
+					.add("sender_class", senderClass)
+					.add("sender_name", senderName)
 					.build();
-			if ( (type.equals("sender_class") && data.equals(sender_class)) 
-					|| (type.equals("sender_name") && data.equals(sender_name))
-					|| (type.equals("sender_id") && data.equals(Integer.toString(sender_id)))
+			System.out.println(senderClass + "\t" + senderName + "\t" + senderId);
+			if ( (type.equals("sender_class") && data.equals(senderClass)) 
+					|| (type.equals("sender_name") && data.equals(senderName))
+					|| (type.equals("sender_id") && data.equals(Integer.toString(senderId)))
 					|| (type.equals("") && data.equals(""))){
 				result = merge(result , jsonTmp);	
 			}
 		}
+		System.out.println(result);
 		return result;
 	}
 	
@@ -117,8 +120,10 @@ public void list(JsonObject object , Socket socket){ // list all capteur in bus
 		} catch (NullPointerException e) {}
 		JsonArray list;
 		if (! s_class.equals("")){ // on teste si la chaine a bien ete trouvee
+			System.out.println("Oui !! ");
 			list = list_capteurs("sender_class", s_class);
 		} else if ( ! s_name.equals("")){ // idem
+			System.out.println("Oui !! ");
 			list = list_capteurs("sender_name", s_name);
 		} else { // cas par default on renvoie tous capteurs presents dans list_capteur
 			list = list_capteurs("", "");
@@ -157,7 +162,7 @@ public void checkIn(JsonObject jsonObject, Socket socket) { // enregistrement co
 
 		String name = jsonObject.getString("name"); // lecture du nom provenant du capteur
 		String type = jsonObject.getString("class"); // lecture de la classe provenant du capteur
-		Capteur cap = new Capteur(name, type); // creation d'un capteur
+		Capteur cap = new Capteur(type, name); // creation d'un capteur
 		cap.setSender_id(id); // attribution de l'id puis incrementation de celui-ci
 		list_capteur.add(cap); // ajout du capteur cree ci-avant dans la liste de capteurs
 
