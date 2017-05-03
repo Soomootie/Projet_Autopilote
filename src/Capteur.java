@@ -1,10 +1,8 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.*;
 
@@ -97,33 +95,43 @@ public class Capteur {
 		JsonObject object = jsonReader.readObject();
 		System.out.println(object);
 		this.setSender_id(object.getInt("sender_id"));
-		//System.out.println(object.getString("ack").toString());
 		
 		jsonReader.close();
 	}
 
-	public int deregisterSender(int sender_id){
+	public int deregisterSender(int sender_id, Socket socket){
 		JsonObject jsonObj = Json.createObjectBuilder()
+				.add("type", "deregister")
 				.add("sender_id", sender_id)
 				.build();
-		Socket socket;
+		
+		String jsonText = jsonObj.toString();
+		
 		try {
-			socket = new Socket(InetAddress.getLocalHost(), 8888);
-			OutputStream out = socket.getOutputStream();
-			JsonWriter jswr = Json.createWriter(out);
-			jswr.writeObject(jsonObj);
-			InputStream in = socket.getInputStream();
-			JsonReader jsonread = Json.createReader(in);
-			JsonObject jsonObjrd = jsonread.readObject();
-			JsonObject ack = jsonObjrd.getJsonObject("ack");			
+			
+			InputStreamReader in = new InputStreamReader(socket.getInputStream());
+			BufferedReader rd = new BufferedReader(in);
+			
+			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
+			BufferedWriter wr = new BufferedWriter(out);
+			
+			wr.write(jsonText);
+			wr.newLine();
+			wr.flush();
+
+			String jsonResp = rd.readLine();	
+			
+			JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
+			JsonObject object = jsonReader.readObject();
+			JsonObject ack = object.getJsonObject("ack");			
 			int res = ack.getInt("resp");
-			jsonread.close();
-			socket.close();
+			jsonReader.close();
+			
 			if (res == 0){
 				System.out.println("Deregister success !");
 				return 1;	
 			}
-			else{
+			else {
 				System.out.println("Error : " + codeError(res));
 				return 0;
 
