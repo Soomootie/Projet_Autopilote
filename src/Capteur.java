@@ -39,12 +39,9 @@ public class Capteur {
 		return sender_id;
 	}
 
-
 	public void setSender_id(int sender_id) {
 		this.sender_id = sender_id;
 	}
-
-
 
 	String codeError(int code){
 		switch(code){
@@ -147,6 +144,37 @@ public class Capteur {
 
 	}
 
+	public void list(String senderClass , String senderName, int senderId, Socket socket) throws IOException{
+		JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
+		jsonObjectBuilder.add("type", "list");
+		if ( ! senderClass.equals("") )
+			jsonObjectBuilder.add("sender_class", senderClass);
+		if ( ! senderName.equals("") )
+			jsonObjectBuilder.add("sender_name", senderName);
+		jsonObjectBuilder.add("sender_id", senderId);
+		
+		JsonObject jsonObj = jsonObjectBuilder.build();
+		String jsonText = jsonObj.toString();
+		
+		OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
+		BufferedWriter wr = new BufferedWriter(out);
+		
+		wr.write(jsonText);
+		wr.newLine();
+		wr.flush();
+		
+		InputStreamReader in = new InputStreamReader(socket.getInputStream());
+		BufferedReader rd = new BufferedReader(in);
+		
+		String jsonResp = rd.readLine();	
+		
+		JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
+		JsonObject object = jsonReader.readObject();
+		System.out.println(object);
+		
+		jsonReader.close();
+	}
+	
 	@Override
 	public String toString() {
 		return "Capteur [sender_class=" + sender_class + ", sender_name="

@@ -15,9 +15,12 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.JsonValue;
 
 public class Bus {
 
@@ -39,8 +42,8 @@ public class Bus {
 
 	// parcourt la liste list_capteur et ajoute les caracteristiques de chaque capteurs present
 	// dans la liste a l'objet result
-	public JsonObject list_capteurs (String type, String data){
-		JsonObject result = Json.createObjectBuilder().build();
+	public JsonArray list_capteurs (String type, String data){
+		JsonArray result = Json.createArrayBuilder().build();
 		for (Iterator<Capteur> iterator = list_capteur.iterator(); iterator.hasNext();) {
 			Capteur capteur = (Capteur) iterator.next();
 			String sender_class = capteur.getSender_class();
@@ -53,14 +56,27 @@ public class Bus {
 					.build();
 			if ( (type.equals("sender_class") && data.equals(sender_class)) 
 					|| (type.equals("sender_name") && data.equals(sender_name))
+					|| (type.equals("sender_id") && data.equals(Integer.toString(sender_id)))
 					|| (type.equals("") && data.equals(""))){
-				result = merge(jsonTmp, result);	
-				System.out.println(result);
+				result = merge(result , jsonTmp);	
 			}
 		}
 		return result;
 	}
-
+	
+	// concatenate two JsonObject
+	public static JsonArray merge(JsonArray oldJsonArray, JsonObject newJsonObject) {
+	JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+		jsonArrayBuilder.add(newJsonObject);
+		if (!oldJsonArray.isEmpty()){
+			for (Iterator<JsonValue> iterator = oldJsonArray.iterator() ; iterator.hasNext() ; ){
+				JsonValue jsonValue = (JsonValue) iterator.next();
+				jsonArrayBuilder.add(jsonValue);
+			}
+		}
+		return jsonArrayBuilder.build();
+	}
+	
 	public boolean is_in(int id){
 		for (Iterator<Capteur> iterator = list_capteur.iterator(); iterator.hasNext();) {
 			Capteur capteur = (Capteur) iterator.next();
@@ -82,26 +98,16 @@ public class Bus {
 		return false;
 	}
 
-public void list(){ // list all capteur in bus
-	Socket socket;
+public void list(JsonObject object , Socket socket){ // list all capteur in bus
 	String s_class = "";
 	String s_name = "";
-	JsonObject ack = Json.createObjectBuilder()
-			.add("type", "list")
-			.add("ack", Json.createObjectBuilder().add("resp","ok")) // changer le resp (ici action par default)
-			.build();
-	try{
-		socket = new Socket(InetAddress.getLocalHost(), 8888);
+	JsonObjectBuilder ack = Json.createObjectBuilder();
+	ack.add("type", "list");
+	ack.add("ack", Json.createObjectBuilder().add("resp","ok")); // changer le resp (ici action par default)
 
+	try{
 		OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
 		BufferedWriter wr = new BufferedWriter(out);
-
-		InputStreamReader in = new InputStreamReader(socket.getInputStream());
-		BufferedReader rd = new BufferedReader(in);
-		String jsonResp = rd.readLine();
-
-		JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
-		JsonObject object= jsonReader.readObject();
 
 		try { // try catch si la chiane de caractere recherchee dans l'objet n'est pas trouvee
 			s_class = object.getString("sender_class");
@@ -109,7 +115,7 @@ public void list(){ // list all capteur in bus
 		try{ //idem
 			s_name = object.getString("sender_name");
 		} catch (NullPointerException e) {}
-		JsonObject list;
+		JsonArray list;
 		if (! s_class.equals("")){ // on teste si la chaine a bien ete trouvee
 			list = list_capteurs("sender_class", s_class);
 		} else if ( ! s_name.equals("")){ // idem
@@ -117,14 +123,13 @@ public void list(){ // list all capteur in bus
 		} else { // cas par default on renvoie tous capteurs presents dans list_capteur
 			list = list_capteurs("", "");
 		}
-		list = merge (ack, list);
+		ack.add("results", list);
 
-		String jsonText = list.toString();
+		String jsonText = ack.build().toString();
 		wr.write(jsonText);
 		wr.newLine();
 		wr.flush();
 
-		jsonReader.close();
 	}
 	catch (UnknownHostException e){
 		e.printStackTrace();
@@ -246,23 +251,6 @@ public void ackSend(JsonObject object , Socket socket) { // ack send
 		e.printStackTrace();
 	}
 
-}
-
-// concatenate two JsonObject
-public static JsonObject merge(JsonObject oldJsonObject, JsonObject newJsonObject) {
-	JsonObjectBuilder jsonObjectBuilder =Json.createObjectBuilder();
-/*
-	for (String key : oldJsonObject.keySet()){
-		jsonObjectBuilder.add(key, oldJsonObject.get(key));
-		System.out.println(key + oldJsonObject.get(key));
-	}
-
-	for (String key : newJsonObject.keySet()){
-		jsonObjectBuilder.add(key, newJsonObject.get(key));
-		System.out.println(key + newJsonObject.get(key));
-	}
-*/
-	return jsonObjectBuilder.build();
 }
 
 public int indexcapt(int sender_id){
@@ -454,13 +442,13 @@ public static void main(String[] args) {
 					bus.checkIn(object, socketduserveur);
 				if (jsonResp.equals("send"))
 					bus.ackSend(object , socketduserveur);
-				if (jsonResp.equals("deregister")){
+				if (jsonResp.equals("deregister"))
 					bus.checkOut(object, socketduserveur);
-				}
+				if (jsonResp.equals("list"))
+					bus.list(object, socketduserveur);
 				jsonReader.close();
 
 			} catch (NullPointerException e) {}
-			System.out.println("De la \t" + bus.list_capteurs("", "") + "\t a la");
 			in.close();
 			socketserver.close();
 		} catch (IOException e) {
