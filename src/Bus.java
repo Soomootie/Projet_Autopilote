@@ -1,11 +1,8 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Reader;
 import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -287,10 +284,10 @@ public class Bus {
 			String dateInString = sdf.format(new Date());
 			Date datepars = sdf.parse(dateInString);
 			int date = (int)datepars.getTime();
-			if (list_capteur.contains(object.getInt("sender_id"))){ // verification existance de l'id dans la liste
+			if (is_in(object.getInt("sender_id"))){ // verification existance de l'id dans la liste
 				if(msgid>=0 && msgid<MAXTAILLE){
 					int indice = indexcapt(object.getInt("sender_id")); //indice du capteur dans le tableau capteur-message
-					if(msgid < tabmsgId[indice].getmsgid()){ //verifie si msgid inferieur a  l'id le plus ancien
+					if(msgid < tabmsgId[indice].getmsgid()){ //verifie si msgid inferieur aï¿½ l'id le plus ancien
 						JsonObject msg = tabmsgId[indice].getTabid(0); //message le plus ancien dans la table des messages
 						JsonObject repmsg = Json.createObjectBuilder()
 								.add("type","get")
@@ -304,7 +301,7 @@ public class Bus {
 						wr.newLine();
 						wr.flush();
 					}
-					else if(msgid>tabmsgId[indice].getmsgid()){ //verifie si msgid superieur a  l'id le plus ancien
+					else if(msgid>tabmsgId[indice].getmsgid()){ //verifie si msgid superieur aï¿½ l'id le plus ancien
 						JsonObject msg = tabmsgId[indice].getTabid(tabmsgId[indice].getmsgid()-1); // message le plus recent
 						JsonObject repmsg = Json.createObjectBuilder()
 								.add("type","get")
@@ -354,6 +351,7 @@ public class Bus {
 				wr.flush();	
 			}
 			jsonReader.close();
+			socket.close();
 		}
 		catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -385,12 +383,12 @@ public class Bus {
 			String dateInString = sdf.format(new Date());
 			Date datepars = sdf.parse(dateInString);
 			int date = (int)datepars.getTime();
-			if (list_capteur.contains(object.getInt("sender_id"))){ // verification existance de l'id dans la liste
+			if (is_in(object.getInt("sender_id"))){ // verification existance de l'id dans la liste
 				int indice = indexcapt(object.getInt("sender_id")); //indice du capteur dans le tableau capteur-message
 				JsonObject msg = tabmsgId[indice].getTabid(tabmsgId[indice].getmsgid());//recupere le message demande d'un capteur
 				int msgid = tabmsgId[indice].getmsgid();
 				JsonObject repmsg = Json.createObjectBuilder()
-						.add("type","get")
+						.add("type","getlast")
 						.add("ack", Json.createObjectBuilder().add("resp", 0))
 						.add("date",date)
 						.add("msg_id", msgid)
@@ -404,7 +402,7 @@ public class Bus {
 
 			else {
 				JsonObject reponse = Json.createObjectBuilder()
-						.add("type", "get")
+						.add("type", "getlast")
 						.add("ack", Json.createObjectBuilder().add("resp",404))
 						.build();
 				String jsonText = reponse.toString();
@@ -413,6 +411,7 @@ public class Bus {
 				wr.flush();
 			}
 			jsonReader.close();
+			socket.close();
 		}
 		catch (UnknownHostException e) {
 			e.printStackTrace();
