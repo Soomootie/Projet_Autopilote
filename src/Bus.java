@@ -132,8 +132,9 @@ public void list(JsonObject object , Socket socket){ // list all capteur in bus
 			list = list_capteurs("", "");
 		}
 		ack.add("results", list);
-
+		System.out.println(ack);
 		String jsonText = ack.build().toString();
+		
 		wr.write(jsonText);
 		wr.newLine();
 		wr.flush();
@@ -448,16 +449,13 @@ public static void main(String[] args) {
 				if(jsonResp.equals("getlast")){
 					bus.getLast(object,socketduserveur);
 					}
-				jsonReader.close();
 
-			} catch (NullPointerException e) {}
-/*
 				if (jsonResp.equals("list"))
 					bus.list(object, socketduserveur);
 				jsonReader.close();
 
 			} catch (NullPointerException e) {}
->>>>>>> 14ecfd05f1ef87a237a5eb87fa706aec7d88ce9f*/
+
 			in.close();
 			socketserver.close();
 		} catch (IOException e) {
