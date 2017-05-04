@@ -12,7 +12,6 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 
-
 public class Gps extends Capteur {
 
 	private double latitude;
@@ -30,38 +29,48 @@ public class Gps extends Capteur {
 		this.latitude = latitude;
 		this.longitude = longitude;
 	}
+	
+	/**
+	 * Retourne la latitude.
+	 * @return Latitude.
+	 */
 	public double getLatitude() {
 		return latitude;
 	}
 
+	/**
+	 * Modifie la latitude.
+	 * @param latitude, un double.
+	 */
 	public void setLatitude(double latitude) {
 		this.latitude = latitude;
 	}
 
+	/**
+	 * Retourne la longitude.
+	 * @return Longitude.
+	 */
 	public double getLongitude() {
 		return longitude;
 	}
 
+	/**
+	 * Modifie la longitude.
+	 * @param longitude, un double.
+	 */
 	public void setLongitude(double longitude) {
 		this.longitude = longitude;
 	}
 
 	
-
+	/**
+	 * 
+	 * @param sender_id, un int.
+	 * @param contents, un JsonObject.
+	 */
 	public  void send(int sender_id,JsonObject contents){
-		// message send looks like :
-		/* msg {
-    "type" : "send",
-    "sender_id" : 2,
-    "contents" : {
-            "la" :48.8645
-            "long" : 2.2856 
-    }
-}
-*/
 		Socket socket;
 		try {
-			// message to send
 			JsonObject msg = Json.createObjectBuilder()
 					.add("type","send")
 					.add("sender_id", sender_id)
@@ -89,7 +98,7 @@ public class Gps extends Capteur {
 			int res = ack.getInt("resp");
 			socket.close();
 			jsonReader.close();
-			if (res == 0){
+			if ( res == 0 ){
 				System.out.println("Send success !");	
 			}
 			else{

@@ -137,6 +137,8 @@ public class Accelerometer extends Capteur{
 					.add("x",acc.getX()).add("y", acc.getY()).add("z", acc.getZ())
 						.build();
 			acc.send(acc.getSender_id(),jsonObj);
+			//acc.list("", "", -1, socket);
+			//acc.deregisterSender(1, socket);
 
 			socket.close();
 

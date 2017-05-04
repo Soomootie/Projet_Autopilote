@@ -99,7 +99,7 @@ public class Capteur {
 	 * @throws UnknownHostException
 	 * @throws IOException
 	 */
-	public void registerSender(String senderClass, String senderName, Socket socket) throws UnknownHostException , IOException{
+	public int registerSender(String senderClass, String senderName, Socket socket) throws UnknownHostException , IOException{
 
 		JsonObject jsonObj = Json.createObjectBuilder()
 				.add("type", "register")
@@ -125,8 +125,17 @@ public class Capteur {
 		JsonObject object = jsonReader.readObject();
 		System.out.println(object);
 		this.setSender_id(object.getInt("sender_id"));
-		
+		JsonObject ack = object.getJsonObject("ack");		
+		int res = ack.getInt("resp");
 		jsonReader.close();
+		if ( res == 0 ){
+			System.out.println("Register success !");
+			return 1;	
+		}
+		else {
+			System.out.println("Error : " + codeError(res));
+			return 0;
+		}	
 	}
 
 	/**
@@ -183,7 +192,36 @@ public class Capteur {
 		}
 	}
 
-	
+	public void list(String senderClass , String senderName, int senderId, Socket socket) throws IOException{
+		JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
+		jsonObjectBuilder.add("type", "list");
+		if ( ! senderClass.equals("") )
+			jsonObjectBuilder.add("sender_class", senderClass);
+		if ( ! senderName.equals("") )
+			jsonObjectBuilder.add("sender_name", senderName);
+		jsonObjectBuilder.add("sender_id", senderId);
+		
+		JsonObject jsonObj = jsonObjectBuilder.build();
+		String jsonText = jsonObj.toString();
+		
+		OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
+		BufferedWriter wr = new BufferedWriter(out);
+		
+		wr.write(jsonText);
+		wr.newLine();
+		wr.flush();
+		
+		InputStreamReader in = new InputStreamReader(socket.getInputStream());
+		BufferedReader rd = new BufferedReader(in);
+		
+		String jsonResp = rd.readLine();	
+		
+		JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
+		JsonObject object = jsonReader.readObject();
+		System.out.println(object);
+		
+		jsonReader.close();
+	}
 	
 	@Override
 	public String toString() {
