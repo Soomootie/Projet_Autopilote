@@ -19,30 +19,59 @@ public class Capteur {
 		this.sender_id = -1;
 	}
 
+	/**
+	 * Renvoie le nom de la classe du capteur.
+	 * @return Nom de la classe du capteur (String).
+	 */
 	public String getSender_class() {
 		return sender_class;
 	}
 
+	/**
+	 * Change le nom de la classe du capteur.
+	 * @param sender_class, un String.
+	 */
 	public void setSender_class(String sender_class) {
 		this.sender_class = sender_class;
 	}
 
+	/**
+	 * Renvoie le nom du capteur.
+	 * @return Nom du capteur (String).
+	 */
 	public String getSender_name() {
 		return sender_name;
 	}
 
+	/**
+	 * Change le nom du capteur.
+	 * @param sender_name, un String.
+	 */
 	public void setSender_name(String sender_name) {
 		this.sender_name = sender_name;
 	}
 
+	/**
+	 * Renvoie l'id du capteur.
+	 * @return L'id du capteur (int).
+	 */
 	public int getSender_id() {
 		return sender_id;
 	}
 
+	/**
+	 * Modifie l'id du capteur.
+	 * @param sender_id, un int.
+	 */
 	public void setSender_id(int sender_id) {
 		this.sender_id = sender_id;
 	}
 
+	/**
+	 * Renvoie un message d'erreur en fonction du code.
+	 * @param code, un int.
+	 * @return Un message expliquant l'erreur encontree.
+	 */
 	String codeError(int code){
 		switch(code){
 		case 400 : return "Bad Request - Your request sucks";
@@ -59,13 +88,17 @@ public class Capteur {
 		case 500 : return "Internal Server Error - We had a problem with our server. Try again later";
 		case 503 : return "Service Unavailable - We're temporarily offline for maintenance. Please try again later";
 		default : return "Code not found";
-
 		}
-
-
 	}
 
-
+	/**
+	 * Envoie une requete d'enregistrement.
+	 * @param senderClass, une String.
+	 * @param senderName, une String.
+	 * @param socket, une Socket.
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 	public void registerSender(String senderClass, String senderName, Socket socket) throws UnknownHostException , IOException{
 
 		JsonObject jsonObj = Json.createObjectBuilder()
@@ -96,6 +129,14 @@ public class Capteur {
 		jsonReader.close();
 	}
 
+	/**
+	 * Envoie une requete de desenregistrement pour l'id
+	 * correspondant.
+	 * @param sender_id, un int.
+	 * @param socket, une Socket.
+	 * @return 1 si l'operation c'est bien deroulee 0 sinon
+	 * -1 pour tout autre types d'erreurs.
+	 */
 	public int deregisterSender(int sender_id, Socket socket){
 		JsonObject jsonObj = Json.createObjectBuilder()
 				.add("type", "deregister")
@@ -105,7 +146,6 @@ public class Capteur {
 		String jsonText = jsonObj.toString();
 		
 		try {
-			
 			InputStreamReader in = new InputStreamReader(socket.getInputStream());
 			BufferedReader rd = new BufferedReader(in);
 			
@@ -124,7 +164,7 @@ public class Capteur {
 			int res = ack.getInt("resp");
 			jsonReader.close();
 			
-			if (res == 0){
+			if ( res == 0 ){
 				System.out.println("Deregister success !");
 				return 1;	
 			}
@@ -141,7 +181,6 @@ public class Capteur {
 			e.printStackTrace();
 			return -1;
 		}
-
 	}
 
 	public void list(String senderClass , String senderName, int senderId, Socket socket) throws IOException{
