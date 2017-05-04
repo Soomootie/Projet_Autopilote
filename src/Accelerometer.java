@@ -93,12 +93,12 @@ public class Accelerometer extends Capteur{
 			socket.close();
 			jsonReader.close();
 			if (res == 0){
-				System.out.println("Send success !");	
+				System.out.println("Send success !");
 			}
 			else{
 				System.out.println("Error : " + codeError(res));
 
-			}	
+			}
 
 		}catch (UnknownHostException e) {
 			e.printStackTrace();
