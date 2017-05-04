@@ -241,6 +241,15 @@ public class Bus {
 	 * @param object , un JsonObject.
 	 * @param socket, une socket.
 	 */
+	
+	 
+		public boolean foundTab(int sender_id){
+			for(int i = 0 ; i < MAXTAILLE ; i++)
+				if( sender_id == tabmsgId[i].getSender_id() )
+					return true;
+			 return false;
+		}
+	
 	public void ackSend(JsonObject object, Socket socket) {
 		JsonObjectBuilder reponse = Json.createObjectBuilder();
 		reponse.add("type", "send");
@@ -254,10 +263,15 @@ public class Bus {
 				wr.write(reponse.build().toString());
 				wr.newLine();
 				wr.flush();
-
+				if(!foundTab(sendid)){ /*le capteur en est a son premier message  */
 				tabmsgId[idtab].setSender_id(sendid); /* Stocke l'id capteur										*/
 				tabmsgId[idtab].setTabid(object.getJsonObject("contents")); /* Stocke le message	*/
-				idtab++;
+				idtab++;}
+				else{ /* le capteur a deja envoye au moins une fois */
+					int index = indexcapt(sendid) ;
+					tabmsgId[index].setTabid(object.getJsonObject("contents")); /* Stocke le message	*/
+					
+				}
 
 			} else { /* Si "sender_id" n'est pas connu , revoie un code d'erreur.									*/ 
 						reponse.add("ack", Json.createObjectBuilder().add("resp", "error").add("error_id", 438));
@@ -304,11 +318,17 @@ public class Bus {
 			Date datepars = sdf.parse(dateInString);
 			int date = (int) datepars.getTime();
 			if ( is_in(object.getInt("sender_id")) ){ /* Verification existance de l'id dans la liste									*/
-				System.out.println(msgid);
-				if( msgid >= 0 && msgid < MAXTAILLE ){
+				if(msgid < MAXTAILLE ){
 					int indice = indexcapt(object.getInt("sender_id"));
-					System.out.println(indice); /* Indice du capteur dans le tableau capteur-message							*/
-					if( msgid < tabmsgId[indice].getmsgid() ){ /* Verifie si msgid inferieur a l'id le plus ancien				*/
+					if(tabmsgId[indice].getTabid(0) == null ){  /*Verifie si le tableau des messages est vide*/			
+						repmsg.add("ack", Json.createObjectBuilder().add("resp", "error").add("error_id", 404));
+						wr.write(repmsg.build().toString());
+						wr.newLine();
+						wr.flush();
+					}	
+					else{	/*table de message non vide */
+					 /* Indice du capteur dans le tableau capteur-message							*/
+					if( msgid < 0 ){ /* Verifie si msgid inferieur a l'id le plus ancien				*/
 						JsonObject msg = tabmsgId[indice].getTabid(0); /* Le plus ancien messages								*/
 						repmsg.add("ack", Json.createObjectBuilder().add("resp", "ok"));
 						repmsg.add("date", date);
@@ -318,7 +338,7 @@ public class Bus {
 						wr.newLine();
 						wr.flush();
 					}
-					else if( msgid > tabmsgId[indice].getmsgid() ){ /* Verifie si msgid superieur a l'id le plus ancien	*/
+					if( msgid > tabmsgId[indice].getmsgid() ){ /* Verifie si msgid superieur a l'id le plus ancien	*/
 						JsonObject msg = tabmsgId[indice].getTabid(tabmsgId[indice].getmsgid() - 1); /* Message le plus recent */
 						repmsg.add("ack", Json.createObjectBuilder().add("resp", "ok"));
 						repmsg.add("date", date);
@@ -328,13 +348,8 @@ public class Bus {
 						wr.newLine();
 						wr.flush();
 					}
-					else if( tabmsgId[indice].getTabid(0) == null ){ /* Verifie si le tableau des messages est vide			*/
-						repmsg.add("ack", Json.createObjectBuilder().add("resp", "error").add("error_id", 404));
-						wr.write(repmsg.build().toString());
-						wr.newLine();
-						wr.flush();
-					}
-					else{
+					
+					if(msgid >= 0 && msgid <= tabmsgId[indice].getmsgid()){
 						JsonObject msg = tabmsgId[indice].getTabid(msgid); /* Recupere le message souhaite				*/
 						repmsg.add("ack", Json.createObjectBuilder().add("resp", "ok"));
 						repmsg.add("date", date);
@@ -344,13 +359,15 @@ public class Bus {
 						wr.newLine();
 						wr.flush();
 					}
-				}
+					}	
 			} else {
 				repmsg.add("ack", Json.createObjectBuilder().add("resp", "error").add("error_id", 404));
 				wr.write(repmsg.build().toString());
 				wr.newLine();
 				wr.flush();	
 			}
+			
+		}
 		}
 		catch (UnknownHostException e) {
 			e.printStackTrace();

@@ -17,9 +17,9 @@ public class Viewer {
 	private int sender_id;
 	private int msg_id;
 
-	public Viewer(int sender_id, int msg_id) {
-		this.sender_id = sender_id;
-		this.msg_id = msg_id;
+	public Viewer() {
+		this.sender_id = 0;
+		this.msg_id = 0;
 	}
 
 	public int getSender_id() {
@@ -61,17 +61,16 @@ public class Viewer {
 					.createReader(new StringReader(jsonResp));
 			JsonObject object = jsonReader.readObject();
 			JsonObject ack = object.getJsonObject("ack");
-			
-			int res = ack.getInt("resp");
-			if (res == 0) {
+			String res = ack.getString("resp");
+			if (res.equals("ok")){
 				System.out.println("Receive success !\n");
 				System.out.println("type :" + object.getString("type") + " "
 						+ "msg_id :" + object.getInt("msg_id") + " "
 						+ "date :" + object.getInt("date") + " "+"contents :"
 						+ object.getJsonObject("contents") + "\n");
 			} else {
-				System.out.println("Error : " + codeError(res));
-
+				int code_res = ack.getInt("error_id");
+				System.out.println("Error : " + codeError(code_res));
 			}
 			jsonReader.close();
 			socket.close();
@@ -106,16 +105,16 @@ public class Viewer {
 					.createReader(new StringReader(jsonResp));
 			JsonObject object = jsonReader.readObject();
 			JsonObject ack = object.getJsonObject("ack");
-			int res = ack.getInt("resp");
-			if (res == 0) {
+			String res = ack.getString("resp");
+			if (res.equals("ok")){
 				System.out.println("Receive success !\n");
 				System.out.println("type :" + object.getString("type") + " "
 						+ "msg_id :" + object.getInt("msg_id") + " "
 						+ "date :" + object.getInt("date") + " "+"contents :"
 						+ object.getJsonObject("contents") + "\n");
 			} else {
-				System.out.println("Error : " + codeError(res));
-
+				int code_res = ack.getInt("error_id");
+				System.out.println("Error : " + codeError(code_res));
 			}
 			jsonReader.close();
 			socket.close();
@@ -206,8 +205,13 @@ public class Viewer {
 	public static void main(String[] args) {
 		/*Viewer viewer1 = new Viewer(1, 9);
 		viewer1.receiveInformation(18, 9);*/
-		Viewer viewer2 = new Viewer(2, 9);
-		viewer2.receiveInformation(1, 0);
+		Viewer viewer2 = new Viewer();
+		viewer2.receiveInformation(1, 3);
+		viewer2.receiveInformation(1, -1);
+		viewer2.receiveInformation(1, 12);
+		viewer2.receiveInformation(1, 13);
+		viewer2.receiveInformation(1, 17);
+		
 		viewer2.list("ACC", "");
 	}
 }
