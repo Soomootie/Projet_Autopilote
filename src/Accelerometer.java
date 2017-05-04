@@ -109,13 +109,15 @@ public class Accelerometer extends Capteur{
 			JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
 			JsonObject object = jsonReader.readObject();
 			JsonObject ack = object.getJsonObject("ack");
-			int res = ack.getInt("resp");
+			String res = ack.getString("resp");
 			socket.close();
 			jsonReader.close();
-			if ( res == 0 )
+			if ( res.equals("ok") )
 				System.out.println("Send success !");
-			else
-				System.out.println("Error : " + codeError(res));
+			else{
+				int code_res = ack.getInt("error_id");
+				System.out.println("Error : " + codeError(code_res));
+			}
 
 		} catch (UnknownHostException e) {
 			e.printStackTrace();

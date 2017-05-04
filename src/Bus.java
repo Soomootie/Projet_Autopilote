@@ -132,7 +132,7 @@ public class Bus {
 		JsonArray list;
 		JsonObjectBuilder ack = Json.createObjectBuilder();
 		ack.add("type", "list");
-		ack.add("ack", Json.createObjectBuilder().add("resp","ok")); 	// changer le resp (ici action par default)
+		ack.add("ack", Json.createObjectBuilder().add("resp", "ok")); 	// changer le resp (ici action par default)
 
 		try{
 			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
@@ -172,28 +172,30 @@ public class Bus {
 	 * @param object , un JsonObject.
 	 * @param socket, une socket.
 	 */
-	public void checkIn(JsonObject object, Socket socket) { 
-		JsonObject ack = Json.createObjectBuilder()
-				.add("type", "register")
-				.add("sender_id", ++id)
-				.add("ack", Json.createObjectBuilder().add("resp", "ok"))
-				.build();
-		String jsonText = ack.toString();
+	public void checkIn(JsonObject object, Socket socket) {
+		JsonObjectBuilder ack = Json.createObjectBuilder();
+		ack.add("type", "register");
+		ack.add("sender_id", ++id);
 
 		try {
 			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
 			BufferedWriter wr = new BufferedWriter(out);
 
 			String name = object.getString("name"); /* Lecture du nom provenant du capteur  	*/
-			String type = object.getString("class"); /*  Lecture de la classe provenant du capteur  */
+			String type = object.getString("class"); /*  Lecture de la classe provenant du capteur */
 			Capteur cap = new Capteur(type, name); /* Creation d'un capteur								*/
 			cap.setSender_id(id); /* Attribution de l'id puis incrementation de celui-ci					*/
-			list_capteur.add(cap); /* Ajout du capteur cree ci-avant dans la liste de capteurs			*/
-
-			wr.write(jsonText); /* Envoie le message ack																		*/
-			wr.newLine();
-			wr.flush();
-
+			if ( list_capteur.add(cap) ){ /* Ajout du capteur cree ci-avant dans la liste de capteurs	*/
+				ack.add("ack", Json.createObjectBuilder().add("resp", "ok"));
+				wr.write(ack.build().toString()); /* Envoie le message ack											*/
+				wr.newLine();
+				wr.flush();
+			} else { /* Si le capteur n'a pas ete ajoute a la liste 															*/
+				ack.add("ack", Json.createObjectBuilder().add("resp", "error").add("error_id", 430));
+				wr.write(ack.build().toString());
+				wr.newLine();
+				wr.flush();
+			}
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -207,28 +209,22 @@ public class Bus {
 	 * @param socket, une socket.
 	 */
 	public void checkOut(JsonObject object , Socket socket) {
+		JsonObjectBuilder reponse = Json.createObjectBuilder();
+		reponse.add("type", "deregister");
 		try {
 			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
 			BufferedWriter wr = new BufferedWriter(out);
 
 			int sender_id = object.getInt("sender_id");
 			if ( is_suppr(sender_id) ){ 
-				JsonObject reponse = Json.createObjectBuilder()
-						.add("type", "deregister")
-						.add("ack", Json.createObjectBuilder().add("resp", 0))
-						.build();
-				String jsonText = reponse.toString();
-				wr.write(jsonText);
+				reponse.add("ack", Json.createObjectBuilder().add("resp", "ok"));
+				wr.write(reponse.build().toString());
 				wr.newLine();
 				wr.flush();
 			}
 			else { /* Si "sender_id" n'est pas connu , renvoie un code d'erreur.			*/
-				JsonObject reponse = Json.createObjectBuilder()
-						.add("type", "deregister")
-						.add("ack", Json.createObjectBuilder().add("resp",428))
-						.build();
-				String jsonText = reponse.toString();
-				wr.write(jsonText);
+				reponse.add("ack", Json.createObjectBuilder().add("resp", "error").add("error_id", 428));
+				wr.write(reponse.build().toString());
 				wr.newLine();
 				wr.flush();
 			}
@@ -246,32 +242,26 @@ public class Bus {
 	 * @param socket, une socket.
 	 */
 	public void ackSend(JsonObject object, Socket socket) {
+		JsonObjectBuilder reponse = Json.createObjectBuilder();
+		reponse.add("type", "send");
 		try {
 			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
 			BufferedWriter wr = new BufferedWriter(out);
 
 			int sendid =object.getInt("sender_id");
-			if ( is_in(sendid) ){ /* Verification existance de l'id														*/
-				JsonObject  reponse = Json.createObjectBuilder()
-						.add("type", "send")
-						.add("ack", Json.createObjectBuilder().add("resp", 0))
-						.build();
-				String jsonText = reponse.toString();
-				wr.write(jsonText);
+			if ( is_in(sendid) ){ /* Verification existance de l'id															*/
+				reponse.add("ack", Json.createObjectBuilder().add("resp", "ok"));
+				wr.write(reponse.build().toString());
 				wr.newLine();
 				wr.flush();
 
-				tabmsgId[idtab].setSender_id(sendid); /* Stocke l'id capteur									*/
-				tabmsgId[idtab].setTabid(object.getJsonObject("contents")); /* Stocke le message		*/
+				tabmsgId[idtab].setSender_id(sendid); /* Stocke l'id capteur										*/
+				tabmsgId[idtab].setTabid(object.getJsonObject("contents")); /* Stocke le message	*/
 				idtab++;
 
-			} else { /* Si "sender_id" n'est pas connu , revoie un code d'erreur.								*/ 
-				JsonObject reponse = Json.createObjectBuilder()
-						.add("type", "send")
-						.add("ack", Json.createObjectBuilder().add("resp",438))
-						.build();
-				String jsonText = reponse.toString();
-				wr.write(jsonText);
+			} else { /* Si "sender_id" n'est pas connu , revoie un code d'erreur.									*/ 
+						reponse.add("ack", Json.createObjectBuilder().add("resp", "error").add("error_id", 438));
+				wr.write(reponse.build().toString());
 				wr.newLine();
 				wr.flush();
 			}
@@ -302,7 +292,8 @@ public class Bus {
 	 * @param socket, une socket.
 	 */
 	public void getInformation(JsonObject object, Socket socket) {
-		System.out.println(object);
+		JsonObjectBuilder repmsg = Json.createObjectBuilder();
+		repmsg.add("type", "get");
 		try {
 			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
 			BufferedWriter wr = new BufferedWriter(out);
@@ -319,66 +310,44 @@ public class Bus {
 					System.out.println(indice); /* Indice du capteur dans le tableau capteur-message							*/
 					if( msgid < tabmsgId[indice].getmsgid() ){ /* Verifie si msgid inferieur a l'id le plus ancien				*/
 						JsonObject msg = tabmsgId[indice].getTabid(0); /* Le plus ancien messages								*/
-						JsonObject repmsg = Json.createObjectBuilder()
-								.add("type", "get")
-								.add("ack", Json.createObjectBuilder().add("resp", 0))
-								.add("date", date)
-								.add("msg_id", msgid)
-								.add("contents", msg)
-								.build();
-						String jsonText = repmsg.toString();
-						wr.write(jsonText);
+						repmsg.add("ack", Json.createObjectBuilder().add("resp", "ok"));
+						repmsg.add("date", date);
+						repmsg.add("msg_id", msgid);
+						repmsg.add("contents", msg);
+						wr.write(repmsg.build().toString());
 						wr.newLine();
 						wr.flush();
 					}
 					else if( msgid > tabmsgId[indice].getmsgid() ){ /* Verifie si msgid superieur a l'id le plus ancien	*/
 						JsonObject msg = tabmsgId[indice].getTabid(tabmsgId[indice].getmsgid() - 1); /* Message le plus recent */
-						JsonObject repmsg = Json.createObjectBuilder()
-								.add("type", "get")
-								.add("ack", Json.createObjectBuilder().add("resp", 0))
-								.add("date", date)
-								.add("msg_id", msgid)
-								.add("contents", msg)
-								.build();
-						String jsonText = repmsg.toString();
-						wr.write(jsonText);
+						repmsg.add("ack", Json.createObjectBuilder().add("resp", "ok"));
+						repmsg.add("date", date);
+						repmsg.add("msg_id", msgid);
+						repmsg.add("contents", msg);
+						wr.write(repmsg.build().toString());
 						wr.newLine();
 						wr.flush();
 					}
 					else if( tabmsgId[indice].getTabid(0) == null ){ /* Verifie si le tableau des messages est vide			*/
-						JsonObject reponse = Json.createObjectBuilder()
-								.add("type", "get")
-								.add("ack", Json.createObjectBuilder().add("resp", 404))
-								.build();
-						String jsonText = reponse.toString();
-						wr.write(jsonText);
+						repmsg.add("ack", Json.createObjectBuilder().add("resp", "error").add("error_id", 404));
+						wr.write(repmsg.build().toString());
 						wr.newLine();
 						wr.flush();
 					}
 					else{
 						JsonObject msg = tabmsgId[indice].getTabid(msgid); /* Recupere le message souhaite				*/
-						System.out.println(msg);
-						JsonObject repmsg = Json.createObjectBuilder()
-								.add("type", "get")
-								.add("ack", Json.createObjectBuilder().add("resp", 0))
-								.add("date", date)
-								.add("msg_id", msgid)
-								.add("contents", msg)
-								.build();
-						String jsonText = repmsg.toString();
-						wr.write(jsonText);
+						repmsg.add("ack", Json.createObjectBuilder().add("resp", "ok"));
+						repmsg.add("date", date);
+						repmsg.add("msg_id", msgid);
+						repmsg.add("contents", msg);
+						wr.write(repmsg.build().toString());
 						wr.newLine();
 						wr.flush();
 					}
 				}
 			} else {
-				JsonObject reponse = Json.createObjectBuilder()
-						.add("type", "get")
-						.add("ack", Json.createObjectBuilder().add("resp", 404))
-						.build();
-				System.out.println("info");
-				String jsonText = reponse.toString();
-				wr.write(jsonText);
+				repmsg.add("ack", Json.createObjectBuilder().add("resp", "error").add("error_id", 404));
+				wr.write(repmsg.build().toString());
 				wr.newLine();
 				wr.flush();	
 			}
@@ -398,8 +367,9 @@ public class Bus {
 	 * @param socket, une socket.
 	 */
 	public void getLast(JsonObject object,Socket socket){
+		JsonObjectBuilder repmsg = Json.createObjectBuilder();
+		repmsg.add("type", "get");
 		try {
-
 			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
 			BufferedWriter wr = new BufferedWriter(out);
 
@@ -412,25 +382,17 @@ public class Bus {
 				int msgid_last = tabmsgId[indice].getmsgid() - 1;
 				System.out.println("dernier id " + msgid_last);
 				JsonObject msg = tabmsgId[indice].getTabid(msgid_last); /* Recupere le dernier message d'un capteur		*/
-				JsonObject repmsg = Json.createObjectBuilder()
-						.add("type", "getlast")
-						.add("ack", Json.createObjectBuilder().add("resp", 0))
-						.add("date", date)
-						.add("msg_id", msgid_last)
-						.add("contents", msg)
-						.build();
-				String jsonText = repmsg.toString();
-				wr.write(jsonText);
+				repmsg.add("ack", Json.createObjectBuilder().add("resp", "ok"));
+				repmsg.add("date", date);
+				repmsg.add("msg_id", msgid_last);
+				repmsg.add("contents", msg);
+				wr.write(repmsg.build().toString());
 				wr.newLine();
 				wr.flush();
 			}
 			else {
-				JsonObject reponse = Json.createObjectBuilder()
-						.add("type", "get")
-						.add("ack", Json.createObjectBuilder().add("resp", 404))
-						.build();
-				String jsonText = reponse.toString();
-				wr.write(jsonText);
+				repmsg.add("ack", Json.createObjectBuilder().add("resp", "error").add("error_id", 404));
+				wr.write(repmsg.build().toString());
 				wr.newLine();
 				wr.flush();
 			}

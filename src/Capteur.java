@@ -83,6 +83,7 @@ public class Capteur {
 		case 410 : return "Gone - The kitten requested has been removed from our servers";
 		case 418 : return "I'm a teapot";
 		case 428 : return "Deregister failed ";
+		case 430 : return "Register failed ";
 		case 438 : return "Send failed";
 		case 429 : return "Too Many Requests - You're requesting too many kittens! Slow down";
 		case 500 : return "Internal Server Error - We had a problem with our server. Try again later";
@@ -125,15 +126,17 @@ public class Capteur {
 		JsonObject object = jsonReader.readObject();
 		System.out.println(object);
 		this.setSender_id(object.getInt("sender_id"));
+		
 		JsonObject ack = object.getJsonObject("ack");		
-		int res = ack.getInt("resp");
+		String res = ack.getString("resp");
 		jsonReader.close();
-		if ( res == 0 ){
+		if ( res.equals("ok") ){
 			System.out.println("Register success !");
 			return 1;	
 		}
 		else {
-			System.out.println("Error : " + codeError(res));
+			int code_res = ack.getInt("error_id");
+			System.out.println("Error : " + codeError(code_res));
 			return 0;
 		}	
 	}
