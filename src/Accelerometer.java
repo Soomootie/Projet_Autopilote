@@ -16,16 +16,16 @@ public class Accelerometer extends Capteur{
 	private double x; // x coordinate
 	private double y; // y coordinate
 	private double z; // z coordinate
-	
+
 	public Accelerometer(){
-	super("ACC", "ACC_1");
+		super("ACC", "ACC_1");
 		x = 0;
 		y = 0;
 		z = 0;
 	}
-	
+
 	public Accelerometer(String sender_class, String sender_name, double x,
-		double y, double z) {
+			double y, double z) {
 		super(sender_class, sender_name);
 		this.x = x;
 		this.y = y;
@@ -49,7 +49,7 @@ public class Accelerometer extends Capteur{
 	public void setZ(double z) {
 		this.z = z;
 	}
-	
+
 	public  void send(int sender_id,JsonObject contents){
 		// message send looks like :
 		/* msg {
@@ -61,7 +61,7 @@ public class Accelerometer extends Capteur{
             "z" : 0
     }
 }
-*/
+		 */
 		Socket socket;
 		try {
 			// message to send
@@ -70,14 +70,14 @@ public class Accelerometer extends Capteur{
 					.add("sender_id", sender_id)
 					.add("contents",contents)
 					.build();
-			
+
 			String jsonText = msg.toString();
-			
+
 			socket = new Socket(InetAddress.getLocalHost(), 8888);
-			
+
 			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
 			BufferedWriter wr = new BufferedWriter(out);
-			
+
 			wr.write(jsonText);
 			wr.newLine();
 			wr.flush();
@@ -85,10 +85,10 @@ public class Accelerometer extends Capteur{
 			InputStreamReader in = new InputStreamReader(socket.getInputStream());
 			BufferedReader rd = new BufferedReader(in);
 			String jsonResp = rd.readLine();
-			
-		    JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
-		    JsonObject object = jsonReader.readObject();
-		    JsonObject ack = object.getJsonObject("ack");
+
+			JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
+			JsonObject object = jsonReader.readObject();
+			JsonObject ack = object.getJsonObject("ack");
 			int res = ack.getInt("resp");
 			socket.close();
 			jsonReader.close();
@@ -97,7 +97,7 @@ public class Accelerometer extends Capteur{
 			}
 			else{
 				System.out.println("Error : " + codeError(res));
-				
+
 			}	
 
 		}catch (UnknownHostException e) {
@@ -106,10 +106,10 @@ public class Accelerometer extends Capteur{
 		}catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 	}
-	
-	
+
+
 	public static void main(String[] args) {
 
 		Socket socket;
@@ -118,14 +118,14 @@ public class Accelerometer extends Capteur{
 			socket = new Socket(InetAddress.getLocalHost(), numport);
 			Accelerometer acc = new Accelerometer("ACC","myAcc",-1,2,3);
 			/*acc.registerSender(acc.getSender_class(), acc.getSender_name(), socket);
-			
+
 			JsonObject jsonObj = Json.createObjectBuilder()
 					.add("x",acc.getX()).add("y", acc.getY()).add("z", acc.getZ())
 						.build();
 			acc.send(acc.getSender_id(),jsonObj);*/
-			acc.list("ACC", "myAcc", -1, socket);
+			acc.list("", "", -1, socket);
 			//acc.deregisterSender(1, socket);
-			
+
 			socket.close();
 
 		}catch (UnknownHostException e) {
@@ -135,5 +135,5 @@ public class Accelerometer extends Capteur{
 			e.printStackTrace();
 		}
 	}
-	
+
 }

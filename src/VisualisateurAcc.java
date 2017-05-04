@@ -118,27 +118,7 @@ public void receiveLast(){
 		
 	}
 
-	public void listCapteurs(String s_name, String s_class){
-		JsonObject jsonObj = Json.createObjectBuilder()
-				.add("sender_class", s_class)
-				.add("sender_name", s_name)
-				.build();
-		Socket socket;
-		try {
-			socket = new Socket(InetAddress.getLocalHost(), 8888);
-			OutputStream out = socket.getOutputStream();
-			JsonWriter jswr = Json.createWriter(out);
-			jswr.writeObject(jsonObj);
-			InputStream in = socket.getInputStream();
-			JsonReader jsonread = Json.createReader(in);
-			JsonObject jsonObjrd = jsonread.readObject();
-			System.out.println(jsonObjrd);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+
 	
 	String codeError(int code){
 		switch(code){
