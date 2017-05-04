@@ -131,14 +131,12 @@ public class Accelerometer extends Capteur{
 		try {
 			socket = new Socket(InetAddress.getLocalHost(), numport);
 			Accelerometer acc = new Accelerometer("ACC","myAcc",-1,2,3);
-			/*acc.registerSender(acc.getSender_class(), acc.getSender_name(), socket);
+			acc.registerSender(acc.getSender_class(), acc.getSender_name(), socket);
 
 			JsonObject jsonObj = Json.createObjectBuilder()
 					.add("x",acc.getX()).add("y", acc.getY()).add("z", acc.getZ())
 						.build();
-			acc.send(acc.getSender_id(),jsonObj);*/
-			acc.list("", "", -1, socket);
-			//acc.deregisterSender(1, socket);
+			acc.send(acc.getSender_id(),jsonObj);
 
 			socket.close();
 
