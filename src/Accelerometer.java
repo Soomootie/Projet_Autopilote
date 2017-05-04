@@ -7,21 +7,18 @@ import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 
 public class Accelerometer extends Capteur{
-	private double x; // x coordinate
-	private double y; // y coordinate
-	private double z; // z coordinate
+	private double x; /* x coordinate				*/
+	private double y; /* y coordinate				*/
+	private double z; /* z coordinate				*/
 
 	public Accelerometer(){
 		super("ACC", "ACC_1");
-		x = 0;
-		y = 0;
-		z = 0;
+		x = y = z= 0;
 	}
 
 	public Accelerometer(String sender_class, String sender_name, double x,
@@ -31,44 +28,67 @@ public class Accelerometer extends Capteur{
 		this.y = y;
 		this.z = z;
 	}
+	
+	/**
+	 * Recupere la coordonnee x.
+	 * @return Coordonnee x.
+	 */
 	public double getX() {
 		return x;
 	}
+	
+	/**
+	 * Modifie la coordonnee x.
+	 * @param x, un double.
+	 */
 	public void setX(double x) {
 		this.x = x;
 	}
+	
+	/**
+	 * Recupere la coordonnee y.
+	 * @return Coordonnee y.
+	 */
 	public double getY() {
 		return y;
 	}
+	
+	/**
+	 * Modifie la coordonnee y.
+	 * @param y, un double.
+	 */
 	public void setY(double y) {
 		this.y = y;
 	}
+	
+	/**
+	 * Recupere la coordonnee z.
+	 * @return Coordonnee z.
+	 */
 	public double getZ() {
 		return z;
 	}
+	
+	/**
+	 * Modifie la coordonnee z.
+	 * @param z, un double.
+	 */
 	public void setZ(double z) {
 		this.z = z;
 	}
 
+	/**
+	 * 
+	 * @param sender_id, un int.
+	 * @param contents, un JsonObject.
+	 */
 	public  void send(int sender_id,JsonObject contents){
-		// message send looks like :
-		/* msg {
-    "type" : "send",
-    "sender_id" : 2,
-    "contents" : {
-            "x" : 1.25,
-            "y" : 1.47,
-            "z" : 0
-    }
-}
-		 */
 		Socket socket;
 		try {
-			// message to send
 			JsonObject msg = Json.createObjectBuilder()
-					.add("type","send")
+					.add("type", "send")
 					.add("sender_id", sender_id)
-					.add("contents",contents)
+					.add("contents", contents)
 					.build();
 
 			String jsonText = msg.toString();
@@ -92,26 +112,20 @@ public class Accelerometer extends Capteur{
 			int res = ack.getInt("resp");
 			socket.close();
 			jsonReader.close();
-			if (res == 0){
+			if ( res == 0 )
 				System.out.println("Send success !");
-			}
-			else{
+			else
 				System.out.println("Error : " + codeError(res));
 
-			}
-
-		}catch (UnknownHostException e) {
+		} catch (UnknownHostException e) {
 			e.printStackTrace();
-
-		}catch (IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 
 	public static void main(String[] args) {
-
 		Socket socket;
 		int numport=8888;
 		try {
@@ -131,9 +145,7 @@ public class Accelerometer extends Capteur{
 		}catch (UnknownHostException e) {
 			e.printStackTrace();
 		}catch (IOException e) {
-
 			e.printStackTrace();
 		}
 	}
-
 }
