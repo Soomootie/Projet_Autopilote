@@ -141,16 +141,15 @@ public class Accelerometer extends Capteur {
 
 	public static void main(String[] args) throws InterruptedException {
 		Socket socket;
-		int numport = 8888;
+		int numport = 8888;int n =7;
 		try {
 			socket = new Socket(InetAddress.getLocalHost(), numport);
 			double x = 1 + (double) (Math.random() * ((5 - 1) + 1));
 			double y = 1 + (double) (Math.random() * ((5 - 1) + 1));
 			double z = 1 + (double) (Math.random() * ((5 - 1) + 1));
 			Accelerometer acc = new Accelerometer("ACC", "myAcc", x, y, z);
-			acc.registerSender(acc.getSender_class(), acc.getSender_name(),
-					socket);
-			while (true) {
+			acc.registerSender(acc.getSender_class(), acc.getSender_name(),socket);
+			while (n>0) {
 				JsonObject jsonObj = Json.createObjectBuilder()
 						.add("x", acc.getX()).add("y", acc.getY())
 						.add("z", acc.getZ()).build();
@@ -158,12 +157,15 @@ public class Accelerometer extends Capteur {
 				acc.setX(1 + (double) (Math.random() * ((5 - 1) + 1)));
 				acc.setY(1 + (double) (Math.random() * ((5 - 1) + 1)));
 				acc.setZ(1 + (double) (Math.random() * ((5 - 1) + 1)));
+				n--;
 				TimeUnit.SECONDS.sleep(1);
 				// acc.list("", "", -1, socket);
 				// acc.deregisterSender(1, socket);
 
 				// socket.close();
 			}
+			//acc.deregisterSender(acc.getSender_id(), new Socket(InetAddress.getLocalHost(), numport));
+			socket.close();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

@@ -338,7 +338,7 @@ public class Bus {
 						wr.newLine();
 						wr.flush();
 					}
-					if( msgid > tabmsgId[indice].getmsgid() ){ /* Verifie si msgid superieur a l'id le plus ancien	*/
+					if( msgid >= tabmsgId[indice].getmsgid() ){ /* Verifie si msgid superieur a l'id le plus ancien	*/
 						JsonObject msg = tabmsgId[indice].getTabid(tabmsgId[indice].getmsgid() - 1); /* Message le plus recent */
 						repmsg.add("ack", Json.createObjectBuilder().add("resp", "ok"));
 						repmsg.add("date", date);
@@ -437,7 +437,7 @@ public class Bus {
 				BufferedReader rd = new BufferedReader(in);
 
 				String jsonResp = rd.readLine();
-				System.out.println(jsonResp);
+				System.out.println("requete recue : " + jsonResp);
 
 				try {
 					JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));

@@ -129,13 +129,6 @@ public class Gps extends Capteur {
 					.add("latitude",gps.getLatitude()).add("longitude", gps.getLongitude())
 						.build();
 			gps.send(gps.getSender_id(),jsonObj);
-			
-			//acc.deregisterSender(1, socket);
-			/*
-			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
-			BufferedWriter wr = new BufferedWriter(out);
-			wr.write("lol");
-			wr.flush();*/
 			socket.close();
 
 		}catch (UnknownHostException e) {

@@ -209,8 +209,8 @@ public class Viewer {
 		viewer2.receiveInformation(1, 3);
 		viewer2.receiveInformation(1, -1);
 		viewer2.receiveInformation(1, 12);
-		viewer2.receiveInformation(1, 13);
-		viewer2.receiveInformation(1, 17);
+		viewer2.receiveInformation(1, 8);
+		viewer2.receiveInformation(1, 6);
 		
 		viewer2.list("ACC", "");
 	}

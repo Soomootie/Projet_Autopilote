@@ -164,6 +164,8 @@ public class Capteur {
 			OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
 			BufferedWriter wr = new BufferedWriter(out);
 			
+			System.out.println(jsonText);
+			
 			wr.write(jsonText);
 			wr.newLine();
 			wr.flush();
@@ -173,18 +175,16 @@ public class Capteur {
 			JsonReader jsonReader = Json.createReader(new StringReader(jsonResp));
 			JsonObject object = jsonReader.readObject();
 			JsonObject ack = object.getJsonObject("ack");			
-			int res = ack.getInt("resp");
+			String res = ack.getString("resp");
 			jsonReader.close();
-			
-			if ( res == 0 ){
+			if (res.equals("ok")){
 				System.out.println("Deregister success !");
-				return 1;	
-			}
-			else {
-				System.out.println("Error : " + codeError(res));
+				return 1;
+			} else {
+				int code_res = ack.getInt("error_id");
+				System.out.println("Error : " + codeError(code_res));
 				return 0;
-
-			}	
+			}
 
 		}catch (UnknownHostException e) {
 			e.printStackTrace();
